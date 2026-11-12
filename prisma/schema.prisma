@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  carts     Cart[]
+  orders    Order[]
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  description String      @db.Text
+  category    String
+  price       Decimal     @db.Decimal(10, 2)
+  imageUrl    String
+  rating      Float       @default(4.5)
+  popularity  Int         @default(0)
+  createdAt   DateTime    @default(now())
+  inventory   Inventory[]
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+}
+
+model Inventory {
+  id        String   @id @default(cuid())
+  productId String
+  city      String
+  stockCount Int     @default(0)
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, city])
+  @@index([city, stockCount])
+}
+
+model Cart {
+  id        String     @id
+  userId    String?
+  user      User?      @relation(fields: [userId], references: [id])
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String  @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+}
+
+model Order {
+  id               String      @id @default(cuid())
+  userId           String
+  totalAmount      Decimal     @db.Decimal(10, 2)
+  status           String      @default("PROCESSING")
+  shippingAddress  String      @db.Text
+  inventoryProcessedAt DateTime?
+  createdAt        DateTime    @default(now())
+  user             User        @relation(fields: [userId], references: [id])
+  items            OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model OutboxEvent {
+  id          String    @id @default(cuid())
+  eventType   String
+  topic       String
+  payload     Json
+  createdAt   DateTime  @default(now())
+  publishedAt DateTime?
+
+  @@index([publishedAt, createdAt])
+}
+
+model EventLog {
+  id          String   @id
+  eventType   String
+  entityId    String
+  topic       String
+  status      String   @default("processed")
+  occurredAt  DateTime
+  payload     Json
+  receivedAt  DateTime @default(now())
+
+  @@index([receivedAt])
+}

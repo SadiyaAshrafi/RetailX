@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: retailx
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22.14.0
+      - key: NODE_ENV
+        value: production
+      - key: API_PORT
+        value: "4000"
+      - key: DATABASE_URL
+        sync: false
+      - key: KAFKA_BROKERS
+        sync: false
+      - key: KAFKA_USERNAME
+        sync: false
+      - key: KAFKA_PASSWORD
+        sync: false
+      - key: KAFKA_SASL_MECHANISM
+        value: SCRAM-SHA-256
+      - key: KAFKA_SSL
+        value: "true"
+      - key: KAFKA_CA_CERT_PATH
+        value: /etc/secrets/kafka-ca.pem
+      - key: OPENSEARCH_NODE
+        sync: false
+      - key: OPENSEARCH_USERNAME
+        sync: false
+      - key: OPENSEARCH_PASSWORD
+        sync: false
+      - key: OPENSEARCH_INDEX
+        value: products
+      - key: ADMIN_ACCESS_KEY
+        sync: false
+      - key: ADMIN_SESSION_SECRET
+        sync: false

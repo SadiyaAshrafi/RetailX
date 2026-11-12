@@ -1,0 +1,11 @@
+node_modules/
+.next/
+dist/
+.env
+.env.*
+!.env.example
+certs/*.pem
+*.tsbuildinfo
+__pycache__/
+*.py[cod]
+prisma/migrations/*/migration.sql.tmp
