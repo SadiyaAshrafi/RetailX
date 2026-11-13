@@ -36,7 +36,7 @@ export function SiteHeader() {
         <span className="network-pulse" />
         <span>RETAILX NETWORK</span>
         <span className="network-separator" />
-        <span className="network-copy">{connected}/3 Aiven services connected</span>
+        <span className="network-copy">{health.isError ? "Service status unavailable" : `${connected}/3 Aiven services connected`}</span>
         <Link href="/admin" className="network-link">System status <ArrowUpRight size={13} /></Link>
       </div>
       <header className="site-header">

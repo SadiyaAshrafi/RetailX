@@ -1,11 +1,20 @@
 import { Router } from "express";
+import type { Response } from "express";
 import { z } from "zod";
 import { prisma, searchClient, productIndex, servicesConfigured } from "../services/aiven";
 import { searchProducts, suggestProducts } from "../services/search";
 
 export const catalogRouter = Router();
 
-catalogRouter.get("/products", async (request, response, next) => {
+function respondCatalogError(response: Response, error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  if (message === "Aiven PostgreSQL is not configured." || message === "Aiven OpenSearch is not configured.") {
+    return response.status(503).json({ error: message });
+  }
+  return response.status(503).json({ error: "Product services are unavailable. Check Aiven PostgreSQL, OpenSearch, and the product index." });
+}
+
+catalogRouter.get("/products", async (request, response) => {
   try {
     const parsed = z.object({
       q: z.string().optional(),
@@ -25,11 +34,11 @@ catalogRouter.get("/products", async (request, response, next) => {
     });
     response.json(result);
   } catch (error) {
-    next(error);
+    return respondCatalogError(response, error);
   }
 });
 
-catalogRouter.get("/products/:id", async (request, response, next) => {
+catalogRouter.get("/products/:id", async (request, response) => {
   try {
     if (!searchClient) throw new Error("Aiven OpenSearch is not configured.");
     if (!servicesConfigured.postgres) throw new Error("Aiven PostgreSQL is not configured.");
@@ -42,11 +51,11 @@ catalogRouter.get("/products/:id", async (request, response, next) => {
       cities: inventory.filter((item) => item.stockCount > 0).map((item) => ({ city: item.city, stock: item.stockCount })),
     });
   } catch (error) {
-    next(error);
+    return respondCatalogError(response, error);
   }
 });
 
-catalogRouter.get("/suggest", async (request, response, next) => {
+catalogRouter.get("/suggest", async (request, response) => {
   try {
     const parsed = z.string().trim().max(120).safeParse(request.query.q ?? "");
     if (!parsed.success) return response.status(400).json({ error: "Search suggestions are limited to 120 characters." });
@@ -56,6 +65,6 @@ catalogRouter.get("/suggest", async (request, response, next) => {
       source: "Aiven OpenSearch",
     });
   } catch (error) {
-    next(error);
+    return respondCatalogError(response, error);
   }
 });

@@ -58,9 +58,17 @@ app.use("/api/admin", (_request, response, next) => {
 app.use("/api/admin", adminRouter);
 
 app.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
-  const message = error instanceof Error ? error.message : "Unexpected server error.";
-  const status = message.includes("not configured") ? 503 : 500;
-  response.status(status).json({ error: message });
+  const message = error instanceof Error ? error.message : "";
+  const safeServiceErrors = new Set([
+    "Aiven OpenSearch is not configured.",
+    "Aiven PostgreSQL is not configured.",
+    "Aiven Kafka is not connected.",
+  ]);
+  if (safeServiceErrors.has(message)) {
+    return response.status(503).json({ error: message });
+  }
+  console.error("Unexpected API request failure.");
+  response.status(500).json({ error: "The API encountered an unexpected error." });
 });
 
 app.listen(port, () => {
