@@ -7,6 +7,7 @@ dist/
 !.env.example
 certs/*.pem
 *.tsbuildinfo
+.vscode/
 __pycache__/
 *.py[cod]
 prisma/migrations/*/migration.sql.tmp
