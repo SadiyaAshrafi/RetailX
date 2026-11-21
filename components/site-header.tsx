@@ -93,10 +93,6 @@ export function SiteHeader() {
             <Sparkles size={14} className="inline mr-1 text-amber-500" />
             AI Concierge <span className="nav-new">AI</span>
           </Link>
-          <Link href="/retailer" className="nav-retailer-highlight">
-            <Store size={14} className="inline mr-1 text-emerald-400" />
-            Retailer OS <span className="nav-new" style={{ backgroundColor: "#2563eb" }}>AI OS</span>
-          </Link>
         </nav>
         <div className="header-actions">
           <Link href="/products" className="header-icon search-shortcut" aria-label="Search products">
