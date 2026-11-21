@@ -77,6 +77,8 @@ export default function CheckoutPage() {
         method: "POST",
         body: JSON.stringify({ ...values, cartId: cartId() }),
       });
+      // Notify product pages to refetch fresh stock from server
+      window.dispatchEvent(new CustomEvent("retailx-stock-changed"));
       router.push(`/order-success?order=${encodeURIComponent(result.orderId)}`);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Unable to place your order.");

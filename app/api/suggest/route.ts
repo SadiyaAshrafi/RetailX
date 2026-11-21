@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q") || "";
-    const suggestions = q.length >= 2 ? await suggestProducts(q) : [];
+    const suggestions = q.length >= 1 ? await suggestProducts(q) : [];
     return NextResponse.json({
       suggestions,
       source: "Aiven OpenSearch",

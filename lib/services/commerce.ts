@@ -196,18 +196,36 @@ export async function processCheckout(params: {
   const totalAmount = itemSubtotal + (itemSubtotal >= 2500 ? 0 : 149);
   const orderId = `rx-ord-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
 
-  // Decrement inventory in memoryStore
+  // Detect user's selected or specified city from delivery address
+  const KNOWN_CITIES = ["Bengaluru", "Mumbai", "Delhi", "Hyderabad"];
+  const addressLower = (address || "").toLowerCase();
+  const matchedCity = KNOWN_CITIES.find((c) => addressLower.includes(c.toLowerCase()));
+
+  // Decrement inventory in memoryStore (city-aware)
   for (const item of validItems) {
     const product = memoryStore.products.find((p) => p.id === item.productId);
     if (product) {
-      product.stock = Math.max(0, product.stock - item.quantity);
-      product.popularity += item.quantity;
-      for (const city of product.cities) {
-        if (city.stock > 0) {
-          city.stock = Math.max(0, city.stock - item.quantity);
-          break;
+      let remaining = item.quantity;
+      // If delivery address mentions a specific city, deduct from that city first
+      if (matchedCity) {
+        const cityObj = product.cities.find((c) => c.city.toLowerCase() === matchedCity.toLowerCase());
+        if (cityObj && cityObj.stock > 0) {
+          const take = Math.min(cityObj.stock, remaining);
+          cityObj.stock = Math.max(0, cityObj.stock - take);
+          remaining -= take;
         }
       }
+      // Deduct any remaining quantity from first city that has stock
+      for (const cityEntry of product.cities) {
+        if (remaining <= 0) break;
+        if (cityEntry.stock > 0) {
+          const take = Math.min(cityEntry.stock, remaining);
+          cityEntry.stock = Math.max(0, cityEntry.stock - take);
+          remaining -= take;
+        }
+      }
+      product.stock = product.cities.reduce((sum, c) => sum + c.stock, 0);
+      product.popularity += item.quantity;
     }
   }
 
@@ -314,6 +332,43 @@ export async function processCheckout(params: {
             payload: { orderId: createdOrder.id, totalAmount },
           },
         });
+
+        // Decrement inventory in PostgreSQL (city-aware)
+        for (const item of validItems) {
+          let remaining = item.quantity;
+          if (matchedCity) {
+            const targetInv = await tx.inventory.findFirst({
+              where: {
+                productId: item.productId,
+                city: { equals: matchedCity, mode: "insensitive" },
+                stockCount: { gt: 0 },
+              },
+            });
+            if (targetInv) {
+              const take = Math.min(targetInv.stockCount, remaining);
+              await tx.inventory.update({
+                where: { id: targetInv.id },
+                data: { stockCount: { decrement: take } },
+              });
+              remaining -= take;
+            }
+          }
+          if (remaining > 0) {
+            const inventoryRows = await tx.inventory.findMany({
+              where: { productId: item.productId, stockCount: { gt: 0 } },
+              orderBy: { stockCount: "desc" },
+            });
+            for (const inv of inventoryRows) {
+              if (remaining <= 0) break;
+              const decrement = Math.min(inv.stockCount, remaining);
+              await tx.inventory.update({
+                where: { id: inv.id },
+                data: { stockCount: { decrement } },
+              });
+              remaining -= decrement;
+            }
+          }
+        }
 
         await tx.cartItem.deleteMany({ where: { cartId } });
       });

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check, GitCompare, MapPin, MessageSquare, Send, ShieldCheck, ShoppingBag, Star, Truck, UserCheck, Zap } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api, cartId, money, notifyCartChanged, type Product } from "@/lib/api";
 
 type Review = {
@@ -40,7 +40,17 @@ export default function ProductDetailPage() {
   const product = useQuery({
     queryKey: ["product", params.id],
     queryFn: () => api<ProductDetail>(`/products/${params.id}`),
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
+
+  useEffect(() => {
+    const handleStockChanged = () => {
+      void product.refetch();
+    };
+    window.addEventListener("retailx-stock-changed", handleStockChanged);
+    return () => window.removeEventListener("retailx-stock-changed", handleStockChanged);
+  }, [product]);
 
   async function addToCart(buyNow = false) {
     if (!product.data) return;

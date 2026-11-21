@@ -3,7 +3,7 @@
 import { Search, ArrowUpRight, Mic, MicOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { api, type Product } from "@/lib/api";
+import { api, money, type Product } from "@/lib/api";
 
 export function SearchBox({ large = false, initialValue = "" }: { large?: boolean; initialValue?: string }) {
   const [value, setValue] = useState(initialValue);
@@ -14,15 +14,26 @@ export function SearchBox({ large = false, initialValue = "" }: { large?: boolea
   const recognitionRef = useRef<unknown>(null);
 
   useEffect(() => {
-    if (value.trim().length < 2) {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  useEffect(() => {
+    const trimmed = value.trim();
+    if (trimmed.length < 1) {
       setSuggestions([]);
       return;
     }
     const timeout = window.setTimeout(() => {
-      void api<{ suggestions: Product[] }>(`/suggest?q=${encodeURIComponent(value.trim())}`)
-        .then((result) => setSuggestions(result.suggestions))
+      void api<{ suggestions: Product[] }>(`/suggest?q=${encodeURIComponent(trimmed)}`)
+        .then((result) => {
+          const list = result.suggestions || [];
+          setSuggestions(list);
+          if (list.length > 0) {
+            setOpen(true);
+          }
+        })
         .catch(() => setSuggestions([]));
-    }, 180);
+    }, 120);
     return () => window.clearTimeout(timeout);
   }, [value]);
 
@@ -84,9 +95,11 @@ export function SearchBox({ large = false, initialValue = "" }: { large?: boolea
       <input
         value={value}
         onChange={(event) => setValue(event.target.value)}
-        onFocus={() => setOpen(true)}
-        onBlur={() => window.setTimeout(() => setOpen(false), 140)}
-        placeholder={large ? "Search anything, try “bluetoth” or click mic..." : "Search products"}
+        onFocus={() => {
+          if (suggestions.length > 0) setOpen(true);
+        }}
+        onBlur={() => window.setTimeout(() => setOpen(false), 250)}
+        placeholder={large ? "Search anything (e.g. earphones, keyboard, watch)..." : "Search products"}
         aria-label="Search products"
       />
       <button
@@ -102,9 +115,26 @@ export function SearchBox({ large = false, initialValue = "" }: { large?: boolea
       {open && suggestions.length > 0 && (
         <div className="suggestion-list">
           {suggestions.map((item) => (
-            <button type="button" key={item.productId} onMouseDown={() => router.push(`/products/${item.productId}`)}>
-              <span>{item.name}</span>
-              <ArrowUpRight size={15} />
+            <button
+              type="button"
+              key={item.productId}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setOpen(false);
+                router.push(`/products/${item.productId}`);
+              }}
+              className="suggestion-item"
+            >
+              <div className="suggestion-item-left">
+                {item.imageUrl && (
+                  <img src={item.imageUrl} alt={item.name} className="suggestion-thumb" />
+                )}
+                <div>
+                  <span className="suggestion-name">{item.name}</span>
+                  <span className="suggestion-meta">{item.category} · {money(item.price)}</span>
+                </div>
+              </div>
+              <ArrowUpRight size={15} className="suggestion-arrow" />
             </button>
           ))}
         </div>

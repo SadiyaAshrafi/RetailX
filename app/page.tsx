@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, AudioLines, Check, Copy, Flame, Gamepad2, GitCompare, Laptop, Sparkles, Tag, Watch, Zap } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/product-card";
 import { SearchBox } from "@/components/search-box";
 import { api, type SearchResult } from "@/lib/api";
@@ -28,7 +28,17 @@ export default function HomePage() {
   const products = useQuery({
     queryKey: ["home-products"],
     queryFn: () => api<SearchResult>("/products?sort=popular&limit=8"),
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
+
+  useEffect(() => {
+    const handleStockChanged = () => {
+      void products.refetch();
+    };
+    window.addEventListener("retailx-stock-changed", handleStockChanged);
+    return () => window.removeEventListener("retailx-stock-changed", handleStockChanged);
+  }, [products]);
 
   function copyPromo(code: string) {
     if (typeof navigator !== "undefined") {

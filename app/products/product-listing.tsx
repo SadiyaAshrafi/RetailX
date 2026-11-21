@@ -50,6 +50,16 @@ export function ProductListing({ initialQuery, initialCategory }: { initialQuery
     };
   }, []);
 
+  useEffect(() => {
+    setQuery(initialQuery);
+    setPage(1);
+  }, [initialQuery]);
+
+  useEffect(() => {
+    setCategory(initialCategory);
+    setPage(1);
+  }, [initialCategory]);
+
   const queryString = new URLSearchParams({
     ...(query ? { q: query } : {}),
     ...(category ? { category } : {}),
@@ -66,7 +76,17 @@ export function ProductListing({ initialQuery, initialCategory }: { initialQuery
     queryKey: ["catalog", queryString],
     queryFn: () => api<SearchResult>(`/products?${queryString}`),
     placeholderData: (previous) => previous,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
+
+  useEffect(() => {
+    const handleStockChanged = () => {
+      void products.refetch();
+    };
+    window.addEventListener("retailx-stock-changed", handleStockChanged);
+    return () => window.removeEventListener("retailx-stock-changed", handleStockChanged);
+  }, [products]);
 
   const activeFilters = Number(Boolean(category)) + Number(Boolean(city)) + Number(available) + Number(Boolean(minPrice || maxPrice));
 

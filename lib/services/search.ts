@@ -1,6 +1,24 @@
 import { searchClient, productIndex, prisma, isOpenSearchAlive } from "./aiven";
 import { memoryStore, isPostgresAlive, type StoredProduct } from "./db";
 
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  Audio: ["earphone", "earphones", "headphone", "headphones", "earbud", "earbuds", "audio", "sound", "music", "noise", "cancelling", "anc", "speaker", "bluetooth", "bluetoth", "mic", "ear"],
+  Computing: ["keyboard", "keyboards", "keychron", "typing", "mechanical", "switch", "display", "screen", "monitor", "4k", "laptop", "stand", "curve", "twelve", "computing", "desk", "work"],
+  Gaming: ["mouse", "mice", "controller", "gamepad", "xbox", "gaming", "game", "esports", "logitech", "hero"],
+  Wearables: ["watch", "watches", "smartwatch", "pixel", "wearable", "wearables", "fitness", "tracker", "fitbit", "health"],
+  Photography: ["camera", "cameras", "fujifilm", "photo", "photography", "video", "lens", "sensor", "4k"],
+  Home: ["lamp", "lamps", "light", "anglepoise", "home", "desk", "room", "illumination"],
+};
+
+function normalizeTerm(term: string) {
+  let s = term.toLowerCase().trim();
+  if (s === "bluetoth") return "bluetooth";
+  if (s.endsWith("ies")) return s.slice(0, -3) + "y";
+  if (s.endsWith("es") && s.length > 3) return s.slice(0, -2);
+  if (s.endsWith("s") && s.length > 3) return s.slice(0, -1);
+  return s;
+}
+
 export type ProductFilters = {
   q?: string;
   category?: string;
@@ -99,20 +117,48 @@ export async function searchProducts(filters: ProductFilters) {
   const pgAlive = await isPostgresAlive();
   if (pgAlive) {
     try {
+      const qLower = query.toLowerCase().trim();
+      const qWords = qLower.split(/\s+/).filter(Boolean);
+      const matchedCategories: string[] = [];
+      for (const [cat, kws] of Object.entries(CATEGORY_KEYWORDS)) {
+        if (
+          kws.some(
+            (k) =>
+              qLower.includes(k) ||
+              k.includes(qLower) ||
+              qWords.some((w) => k.includes(w) || w.includes(k) || k.includes(normalizeTerm(w)))
+          )
+        ) {
+          matchedCategories.push(cat);
+        }
+      }
+
+      const orConditions: Array<Record<string, unknown>> = [
+        { name: { contains: query, mode: "insensitive" } },
+        { description: { contains: query, mode: "insensitive" } },
+        { category: { contains: query, mode: "insensitive" } },
+      ];
+
+      for (const w of qWords) {
+        const nw = normalizeTerm(w);
+        orConditions.push({ name: { contains: w, mode: "insensitive" } });
+        orConditions.push({ description: { contains: w, mode: "insensitive" } });
+        if (nw !== w) {
+          orConditions.push({ name: { contains: nw, mode: "insensitive" } });
+          orConditions.push({ description: { contains: nw, mode: "insensitive" } });
+        }
+      }
+
+      for (const catName of matchedCategories) {
+        orConditions.push({ category: { equals: catName, mode: "insensitive" } });
+      }
+
       const dbProducts = await prisma.product.findMany({
         where: {
           AND: [
             { id: { not: { startsWith: "demo-" } } },
             category ? { category: { equals: category, mode: "insensitive" } } : {},
-            query
-              ? {
-                  OR: [
-                    { name: { contains: query, mode: "insensitive" } },
-                    { description: { contains: query, mode: "insensitive" } },
-                    { category: { contains: query, mode: "insensitive" } },
-                  ],
-                }
-              : {},
+            query ? { OR: orConditions } : {},
             filters.minPrice !== undefined ? { price: { gte: filters.minPrice } } : {},
             filters.maxPrice !== undefined ? { price: { lte: filters.maxPrice } } : {},
           ],
@@ -201,24 +247,44 @@ export async function searchProducts(filters: ProductFilters) {
   }
 
   if (query) {
-    const qWords = query.split(/\s+/).filter(Boolean);
+    const qLower = query.toLowerCase().trim();
+    const qWords = qLower.split(/\s+/).filter(Boolean);
+    const normalizedWords = qWords.map(normalizeTerm);
+
     list = list
       .map((p) => {
         let score = 0;
         const nameLower = p.name.toLowerCase();
         const descLower = p.description.toLowerCase();
         const catLower = p.category.toLowerCase();
+        const highlightsLower = (p.highlights || []).join(" ").toLowerCase();
+        const keywords = CATEGORY_KEYWORDS[p.category] || [];
 
-        for (const w of qWords) {
-          if (nameLower.includes(w)) score += 10;
-          if (catLower.includes(w)) score += 5;
-          if (descLower.includes(w)) score += 2;
+        // Exact full phrase match
+        if (nameLower.includes(qLower)) score += 25;
+        if (catLower.includes(qLower)) score += 15;
+        if (descLower.includes(qLower)) score += 8;
+        if (highlightsLower.includes(qLower)) score += 8;
+
+        for (let i = 0; i < qWords.length; i++) {
+          const w = qWords[i];
+          const nw = normalizedWords[i];
+
+          // Word substring checks
+          if (nameLower.includes(w) || nameLower.includes(nw)) score += 12;
+          if (catLower.includes(w) || catLower.includes(nw)) score += 8;
+          if (descLower.includes(w) || descLower.includes(nw)) score += 4;
+          if (highlightsLower.includes(w) || highlightsLower.includes(nw)) score += 4;
+
+          // Check category semantic keywords
+          if (keywords.some((k) => k.includes(w) || k.includes(nw) || w.includes(k) || nw.includes(k))) {
+            score += 10;
+          }
         }
 
-        // Fuzzy tolerance for typos (e.g. bluetoth -> bluetooth)
-        if (query.includes("bluetoth") && nameLower.includes("bluetooth")) score += 8;
-        if (query.includes("earphone") && (nameLower.includes("earphone") || nameLower.includes("headphone") || nameLower.includes("earbuds"))) score += 6;
-        if (query.includes("keybord") && nameLower.includes("keyboard")) score += 8;
+        // Fuzzy typo tolerance
+        if (qLower.includes("bluetoth") && (nameLower.includes("bluetooth") || keywords.includes("bluetooth"))) score += 12;
+        if (qLower.includes("keybord") && (nameLower.includes("keyboard") || keywords.includes("keyboard"))) score += 12;
 
         return { product: p, score };
       })
@@ -322,24 +388,47 @@ export async function getProductById(id: string) {
 export async function suggestProducts(query: string) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
+  const qNorm = normalizeTerm(q);
+  const qWords = q.split(/\s+/).filter(Boolean);
 
   // Match memory store products (excluding demo SKUs)
-  const matches = memoryStore.products
-    .filter(
-      (p) =>
-        !p.id.startsWith("demo-") &&
-        (p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          (q.includes("bluetoth") && p.name.toLowerCase().includes("bluetooth")))
-    )
-    .slice(0, 5)
-    .map((p) => ({
-      productId: p.id,
-      name: p.name,
-      category: p.category,
-      price: p.price,
-      imageUrl: p.imageUrl,
-    }));
+  const scored = memoryStore.products
+    .filter((p) => !p.id.startsWith("demo-"))
+    .map((p) => {
+      let score = 0;
+      const name = p.name.toLowerCase();
+      const cat = p.category.toLowerCase();
+      const desc = p.description.toLowerCase();
+      const keywords = CATEGORY_KEYWORDS[p.category] || [];
 
-  return matches;
+      if (name.startsWith(q) || name.startsWith(qNorm)) score += 35;
+      else if (name.includes(q) || name.includes(qNorm)) score += 25;
+
+      if (cat.includes(q) || cat.includes(qNorm)) score += 18;
+      if (keywords.some((k) => k.includes(q) || k.includes(qNorm) || q.includes(k) || qNorm.includes(k))) score += 20;
+      if (desc.includes(q) || desc.includes(qNorm)) score += 8;
+
+      for (const w of qWords) {
+        const nw = normalizeTerm(w);
+        if (name.includes(w) || name.includes(nw)) score += 15;
+        if (cat.includes(w) || cat.includes(nw)) score += 12;
+        if (keywords.some((k) => k.includes(w) || k.includes(nw) || w.includes(k) || nw.includes(k))) score += 15;
+        if (desc.includes(w) || desc.includes(nw)) score += 5;
+      }
+
+      if (q.includes("bluetoth") && name.includes("bluetooth")) score += 20;
+      if (q.includes("keybord") && name.includes("keyboard")) score += 20;
+
+      return { product: p, score };
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, 6).map((item) => ({
+    productId: item.product.id,
+    name: item.product.name,
+    category: item.product.category,
+    price: item.product.price,
+    imageUrl: item.product.imageUrl,
+  }));
 }
