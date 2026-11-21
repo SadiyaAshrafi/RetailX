@@ -1,26 +1,6 @@
 import { memoryStore } from "./db";
 import { money } from "../api";
 
-export type ExpiryBatch = {
-  id: string;
-  productId: string;
-  productName: string;
-  category: string;
-  batchNumber: string;
-  quantity: number;
-  costPrice: number;
-  currentPrice: number;
-  expiryDate: string;
-  daysRemaining: number;
-  status: "TOMORROW" | "3_DAYS" | "7_DAYS" | "SAFE";
-  aiAction: {
-    type: "DISCOUNT" | "BUNDLE" | "FLASH_SALE";
-    label: string;
-    description: string;
-    projectedSavedValue: number;
-  };
-};
-
 export type RestockForecast = {
   productId: string;
   productName: string;
@@ -44,7 +24,6 @@ export type DynamicPriceItem = {
   reason: string;
   inventoryLevel: "HIGH" | "BALANCED" | "LOW";
   demandVelocity: "FAST" | "MEDIUM" | "SLOW";
-  expiryStatus: "NORMAL" | "EXPIRING_SOON";
   expectedRevenueBoost: number;
 };
 
@@ -232,69 +211,7 @@ export function getRetailerIntelligence() {
     },
   ];
 
-  // 2. Expiry Management (Module 3)
-  const today = new Date();
-  const expiryBatches: ExpiryBatch[] = [
-    {
-      id: "batch-exp-01",
-      productId: "rx-fresh-milk",
-      productName: "Organic A2 Whole Milk (1L)",
-      category: "Dairy",
-      batchNumber: "BN-2026-081",
-      quantity: 18,
-      costPrice: 50,
-      currentPrice: 72,
-      expiryDate: new Date(today.getTime() + 24 * 3600 * 1000).toISOString().split("T")[0],
-      daysRemaining: 1,
-      status: "TOMORROW",
-      aiAction: {
-        type: "FLASH_SALE",
-        label: "Flash Sale: 25% Off",
-        description: "Liquidate batch by 6 PM today via push notification to nearby customers",
-        projectedSavedValue: 972,
-      },
-    },
-    {
-      id: "batch-exp-02",
-      productId: "rx-multigrain-bread",
-      productName: "Artisanal Multigrain Bread",
-      category: "Bakery",
-      batchNumber: "BN-2026-079",
-      quantity: 14,
-      costPrice: 38,
-      currentPrice: 60,
-      expiryDate: new Date(today.getTime() + 3 * 24 * 3600 * 1000).toISOString().split("T")[0],
-      daysRemaining: 3,
-      status: "3_DAYS",
-      aiAction: {
-        type: "BUNDLE",
-        label: "Bundle with Fruit Jam",
-        description: "Offer Bread + Organic Jam at ₹129 (Save ₹35). Clears 100% stock in 48h.",
-        projectedSavedValue: 840,
-      },
-    },
-    {
-      id: "batch-exp-03",
-      productId: "rx-almond-butter",
-      productName: "Raw Honey Almond Butter (250g)",
-      category: "Gourmet",
-      batchNumber: "BN-2026-064",
-      quantity: 26,
-      costPrice: 280,
-      currentPrice: 440,
-      expiryDate: new Date(today.getTime() + 7 * 24 * 3600 * 1000).toISOString().split("T")[0],
-      daysRemaining: 7,
-      status: "7_DAYS",
-      aiAction: {
-        type: "DISCOUNT",
-        label: "Apply 15% Smart Markdown",
-        description: "Adjust price to ₹374. Increases purchase probability by 3.4x based on elasticity.",
-        projectedSavedValue: 9724,
-      },
-    },
-  ];
-
-  // 3. Dynamic Pricing (Module 4)
+  // 2. Dynamic Pricing Engine
   const dynamicPricing: DynamicPriceItem[] = [
     {
       productId: "rx-studio-headphones",
@@ -306,7 +223,6 @@ export function getRetailerIntelligence() {
       reason: "High stock (56 units) with slowing velocity. Competitor price dropped by 5%.",
       inventoryLevel: "HIGH",
       demandVelocity: "SLOW",
-      expiryStatus: "NORMAL",
       expectedRevenueBoost: 38500,
     },
     {
@@ -319,7 +235,6 @@ export function getRetailerIntelligence() {
       reason: "High demand spike (+42% this week) and low hub stock. Inelastic demand zone.",
       inventoryLevel: "LOW",
       demandVelocity: "FAST",
-      expiryStatus: "NORMAL",
       expectedRevenueBoost: 12400,
     },
     {
@@ -332,7 +247,6 @@ export function getRetailerIntelligence() {
       reason: "Excess regional inventory across Mumbai & Delhi. Flash weekend discount recommended.",
       inventoryLevel: "HIGH",
       demandVelocity: "SLOW",
-      expiryStatus: "NORMAL",
       expectedRevenueBoost: 24800,
     },
   ];
@@ -395,7 +309,6 @@ export function getRetailerIntelligence() {
     businessHealthScore,
     aiScore,
     restockForecasts,
-    expiryBatches,
     dynamicPricing,
     inventoryHealth,
     customerSegments,
@@ -475,18 +388,18 @@ export function handleCopilotQuery(query: string, language: "en" | "hi" | "kn" =
     };
   }
 
-  // Question 4: Which products may expire soon?
-  if (q.includes("expire") || q.includes("expiry") || q.includes("एक्सपायरी") || q.includes("ಮುಕ್ತಾಯ")) {
+  // Question 4: Which categories are growing?
+  if (q.includes("expire") || q.includes("expiry") || q.includes("grow") || q.includes("trend") || q.includes("एक्सपायरी") || q.includes("ಮುಕ್ತಾಯ")) {
     return {
       query,
-      summary: "⏳ 3 perishable batches require markdown intervention to prevent inventory loss:",
+      summary: "📈 Top 3 fastest-growing product categories based on 30-day sales velocity:",
       actions: [
-        "⚠️ Organic A2 Milk (Batch BN-081): 18 units expire tomorrow. Trigger instant 25% Flash Sale.",
-        "⚠️ Multigrain Bread (Batch BN-079): 14 units expire in 3 days. Auto-bundle with Jam at ₹129.",
-        "⚠️ Raw Honey Almond Butter: 26 units expire in 7 days. Apply 15% markdown to ₹374.",
+        "✅ Audio (Earphones & Headphones): +42% week-over-week. Increase catalog depth and hero placement.",
+        "✅ Computing Accessories (Keyboards, Mice): +28% month-over-month. Add bundle kits.",
+        "✅ Wearables (Smartwatches): +19% steady growth. Promote via personalized push to repeat buyers.",
       ],
-      expectedImpact: "Sustainability Score: 100% loss prevented (₹11,536 inventory salvage).",
-      kpi: "₹11,536 Saved",
+      expectedImpact: "Capturing category growth trends can unlock an estimated +₹22,000 incremental revenue this month.",
+      kpi: "+₹22,000 Potential",
     };
   }
 
@@ -494,12 +407,12 @@ export function handleCopilotQuery(query: string, language: "en" | "hi" | "kn" =
   if (q.includes("revenue") || q.includes("sales") || q.includes("बिक्री") || q.includes("ಹೆಚ್ಚಳ")) {
     return {
       query,
-      summary: "🚀 3-step action plan to generate an estimated ₹4,000 to ₹18,000 additional revenue this week:",
+      summary: "🚀 3-step action plan to generate an estimated ₹18,000–₹32,000 additional revenue this week:",
       actions: [
-        "✅ Restock Milk & Bluetooth Earphones (prevents immediate ₹14,200 lost demand).",
-        "✅ Promote Rice & Staples via personalized SMS/WhatsApp to repeat buyers (+₹6,500).",
-        "✅ Discount Bread & slow-moving batch by 10-15% (+₹3,800 liquidation velocity).",
-        "✅ Launch 'Breakfast Combo' and 'Remote Work Kit' at checkout (+₹8,200 basket size).",
+        "✅ Restock Bluetooth Earphones & Keychron K2 immediately (prevents ₹14,200 lost demand from stockouts).",
+        "✅ Promote Soundcore Space One & Studio Headphones via personalized push to VIP buyers (+₹6,500).",
+        "✅ Launch 'Remote Work Kit' and 'Audio Starter Pack' bundles at checkout (+₹8,200 basket size).",
+        "✅ Enable Dynamic Pricing on slow-moving Marshall Emberton II to clear excess stock (+₹3,800).",
       ],
       expectedImpact: "Expected Total Sales Increase: +₹18,500 to ₹32,700 this week.",
       kpi: "+₹24,500 Net Lift",
@@ -512,8 +425,8 @@ export function handleCopilotQuery(query: string, language: "en" | "hi" | "kn" =
     summary: `🤖 AI Retail Copilot analyzed catalog, sales velocity & current Aiven PostgreSQL inventory:`,
     actions: [
       "✅ Recommendation 1: Prioritize restocking 2 critical items (Bluetooth Earphones & Keychron K2).",
-      "✅ Recommendation 2: Activate 10% markdown on nearing-expiry batch BN-2026-079 to eliminate wastage.",
-      "✅ Recommendation 3: Enable Dynamic Pricing for Studio Pro Headphones to capture 38k latent demand.",
+      "✅ Recommendation 2: Activate Dynamic Pricing on Studio Pro Headphones to unlock ₹38,500 latent demand.",
+      "✅ Recommendation 3: Launch 'Remote Work Kit' bundle to increase average basket size by 18%.",
     ],
     expectedImpact: "Projected 7-Day Net Impact: +₹32,700 additional store revenue.",
     kpi: "+₹32,700",

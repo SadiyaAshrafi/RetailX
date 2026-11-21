@@ -65,25 +65,6 @@ type IntelligenceData = {
     leadTimeDays: number;
     expectedStockout: string;
   }>;
-  expiryBatches: Array<{
-    id: string;
-    productId: string;
-    productName: string;
-    category: string;
-    batchNumber: string;
-    quantity: number;
-    costPrice: number;
-    currentPrice: number;
-    expiryDate: string;
-    daysRemaining: number;
-    status: "TOMORROW" | "3_DAYS" | "7_DAYS" | "SAFE";
-    aiAction: {
-      type: "DISCOUNT" | "BUNDLE" | "FLASH_SALE";
-      label: string;
-      description: string;
-      projectedSavedValue: number;
-    };
-  }>;
   dynamicPricing: Array<{
     productId: string;
     productName: string;
@@ -94,7 +75,6 @@ type IntelligenceData = {
     reason: string;
     inventoryLevel: "HIGH" | "BALANCED" | "LOW";
     demandVelocity: "FAST" | "MEDIUM" | "SLOW";
-    expiryStatus: "NORMAL" | "EXPIRING_SOON";
     expectedRevenueBoost: number;
   }>;
   inventoryHealth: {
@@ -149,7 +129,6 @@ export default function RetailerOSPage() {
     | "executive"
     | "copilot"
     | "restock"
-    | "expiry"
     | "pricing"
     | "analytics"
     | "customers"
@@ -167,8 +146,7 @@ export default function RetailerOSPage() {
       text: "👋 Welcome to RetailX AI Copilot. I continuously monitor sales velocity, Aiven PostgreSQL inventory, and market elasticity.",
       actions: [
         "✅ Restock Bluetooth Earphones (stockout in 1.2 days)",
-        "✅ Apply 15% markdown on nearing-expiry batch BN-2026-064",
-        "✅ Promote Artisan Breakfast Combo to VIP customers",
+        "✅ Promote Remote Work Kit bundle to VIP customers",
       ],
       expectedImpact: "Projected 7-Day Revenue Lift: +₹32,700",
       kpi: "+₹32,700 Lift",
@@ -256,7 +234,7 @@ export default function RetailerOSPage() {
         {
           id: `err-${Date.now()}`,
           sender: "copilot",
-          text: "I analyzed the catalog and recommend restocking low stock items and applying discounts on near-expiry batches.",
+          text: "I analyzed the catalog and recommend restocking critical items and activating dynamic pricing on slow movers.",
           timestamp: "Just now",
         },
       ]);
@@ -399,9 +377,6 @@ export default function RetailerOSPage() {
         <button className={activeTab === "restock" ? "active" : ""} onClick={() => setActiveTab("restock")}>
           <Boxes size={15} /> Restock Engine
         </button>
-        <button className={activeTab === "expiry" ? "active" : ""} onClick={() => setActiveTab("expiry")}>
-          <Clock size={15} /> Expiry & Batches
-        </button>
         <button className={activeTab === "pricing" ? "active" : ""} onClick={() => setActiveTab("pricing")}>
           <Percent size={15} /> Dynamic Pricing
         </button>
@@ -492,18 +467,6 @@ export default function RetailerOSPage() {
                   onClick={() => showToast("Live price updated to ₹11,999 in PostgreSQL & OpenSearch!")}
                 >
                   Apply Live Price
-                </button>
-              </div>
-
-              <div className="prescription-item">
-                <span className="presc-badge expiry">EXPIRY PREVENTION</span>
-                <strong>Flash Sale for A2 Milk Batch BN-081</strong>
-                <p>18 units expire tomorrow. 25% discount salvages ₹972 with 0 food waste.</p>
-                <button
-                  className="button button-light button-sm"
-                  onClick={() => showToast("Flash Sale broadcasted to app customers!")}
-                >
-                  Broadcast Flash Sale
                 </button>
               </div>
             </div>
@@ -650,72 +613,6 @@ export default function RetailerOSPage() {
         </section>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODULE 3: EXPIRY & BATCH MANAGEMENT */}
-      {/* ========================================================================= */}
-      {activeTab === "expiry" && (
-        <section className="retailer-module-section">
-          <div className="section-header">
-            <div>
-              <span className="filter-label">MODULE 3 · FOOD &amp; PRODUCT WASTAGE REDUCTION</span>
-              <h2>Expiry &amp; Batch Management</h2>
-              <p>Automated batch tracking with AI markdown alerts for products expiring in 7 days, 3 days, or tomorrow to ensure zero waste.</p>
-            </div>
-          </div>
-
-          <div className="expiry-cards-grid">
-            {(data?.expiryBatches ?? []).map((batch) => (
-              <div key={batch.id} className={`expiry-card status-${batch.status.toLowerCase()}`}>
-                <div className="expiry-header">
-                  <div>
-                    <span className="batch-badge">{batch.batchNumber}</span>
-                    <h3>{batch.productName}</h3>
-                  </div>
-                  <span className={`expiry-tag ${batch.daysRemaining === 1 ? "tomorrow" : batch.daysRemaining === 3 ? "days-3" : "days-7"}`}>
-                    {batch.daysRemaining === 1 ? "Expiring Tomorrow" : `Expiring in ${batch.daysRemaining} Days`}
-                  </span>
-                </div>
-
-                <div className="batch-stats">
-                  <div>
-                    <span>Quantity</span>
-                    <strong>{batch.quantity} units</strong>
-                  </div>
-                  <div>
-                    <span>Cost / Unit</span>
-                    <strong>₹{batch.costPrice}</strong>
-                  </div>
-                  <div>
-                    <span>Sell Price</span>
-                    <strong>₹{batch.currentPrice}</strong>
-                  </div>
-                  <div>
-                    <span>Expiry Date</span>
-                    <strong>{batch.expiryDate}</strong>
-                  </div>
-                </div>
-
-                <div className="ai-recommendation-block">
-                  <div className="ai-rec-title">
-                    <Sparkles size={14} className="text-amber-400" />
-                    <strong>Smart Recommendation: {batch.aiAction.label}</strong>
-                  </div>
-                  <p>{batch.aiAction.description}</p>
-                  <div className="rec-footer">
-                    <span className="salvage-val">Projected Salvage: {money(batch.aiAction.projectedSavedValue)}</span>
-                    <button
-                      className="button button-primary button-sm"
-                      onClick={() => showToast(`Action "${batch.aiAction.label}" applied to batch ${batch.batchNumber}!`)}
-                    >
-                      Execute Recommendation
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* ========================================================================= */}
       {/* MODULE 4: DYNAMIC PRICING */}
@@ -1211,7 +1108,7 @@ export default function RetailerOSPage() {
               <span>Waste Prevented This Month</span>
             </div>
             <p className="sustainability-note">
-              &ldquo;By autonomously triggering 15% markdowns and breakfast bundle offers before expiry, RetailX prevented <strong>{data?.sustainability.unitsSavedFromLandfill ?? 142} perishable items</strong> from ending up in landfills.&rdquo;
+              &ldquo;By activating dynamic pricing and smart restock alerts, RetailX prevented <strong>{data?.sustainability.unitsSavedFromLandfill ?? 142} inventory units</strong> from becoming dead stock — saving ₹{data?.sustainability.salvagedRevenue ?? 18450} in working capital.&rdquo;
             </p>
           </div>
 
@@ -1224,7 +1121,7 @@ export default function RetailerOSPage() {
             <div className="eco-stat-card">
               <span className="eco-label">RECOVERED REVENUE</span>
               <strong className="text-emerald-400">{money(data?.sustainability.salvagedRevenue ?? 18450)}</strong>
-              <span>Cash unlocked from near-expiry stock</span>
+              <span>Revenue unlocked from dynamic pricing</span>
             </div>
             <div className="eco-stat-card">
               <span className="eco-label">CARBON OFFSET EQUIVALENT</span>
