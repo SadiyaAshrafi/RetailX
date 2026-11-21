@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, Boxes, Cpu, Database, IndianRupee, Layers, PackageCheck, Search, ShoppingCart, TrendingUp, Waves, Zap } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Boxes, Cpu, Database, IndianRupee, Layers, PackageCheck, Search, ShoppingCart, Sparkles, TrendingUp, Waves, Zap } from "lucide-react";
 import Link from "next/link";
 import { AdminShell } from "@/components/admin-shell";
 import { ArchitectureFlow } from "@/components/architecture-flow";
@@ -74,6 +74,20 @@ export default function AdminDashboard() {
           );
         })}
       </div>
+
+      {/* Retailer OS 12-Module Suite Banner */}
+      <section className="retailer-os-admin-banner">
+        <div className="banner-badge"><Sparkles size={13} className="text-amber-400" /> NEW ENTERPRISE SUITE</div>
+        <div className="banner-main-row">
+          <div>
+            <h3>Retailer Intelligence OS (12 Autonomous Modules)</h3>
+            <p>&ldquo;Other platforms tell retailers what happened. <strong>RetailX tells retailers what will happen and what they should do next.</strong>&rdquo;</p>
+          </div>
+          <Link href="/retailer" className="button button-primary">
+            Launch Retailer OS <ArrowRight size={14} />
+          </Link>
+        </div>
+      </section>
 
       {/* Interactive System Architecture Diagram & Packet Pulse */}
       <section className="mb-6">

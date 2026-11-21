@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, CircleUserRound, GitCompare, MapPin, Search, ShieldCheck, ShoppingBag, Sparkles, Tag, Zap } from "lucide-react";
+import { ArrowUpRight, CircleUserRound, GitCompare, MapPin, Search, ShieldCheck, ShoppingBag, Sparkles, Store, Tag, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, cartId, type ServiceState } from "@/lib/api";
 
@@ -92,6 +92,10 @@ export function SiteHeader() {
           <Link href="/assistant" className="nav-assistant-highlight">
             <Sparkles size={14} className="inline mr-1 text-amber-500" />
             AI Concierge <span className="nav-new">AI</span>
+          </Link>
+          <Link href="/retailer" className="nav-retailer-highlight">
+            <Store size={14} className="inline mr-1 text-emerald-400" />
+            Retailer OS <span className="nav-new" style={{ backgroundColor: "#2563eb" }}>12 MODS</span>
           </Link>
         </nav>
         <div className="header-actions">
