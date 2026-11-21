@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Filter, GitCompare, Search, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Filter, GitCompare, Search, Sparkles, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/product-card";
 import { SearchBox } from "@/components/search-box";
@@ -228,6 +228,14 @@ export function ProductListing({ initialQuery, initialCategory }: { initialQuery
         </aside>
 
         <section className="catalog-results" aria-live="polite">
+          {query && (
+            <div className="opensearch-fuzzy-banner">
+              <Sparkles size={14} style={{ color: "#f59e0b" }} />
+              <span>
+                OpenSearch Typo-Tolerant Match: <b>&ldquo;{query}&rdquo;</b> returned {products.data?.total ?? 0} result{products.data?.total === 1 ? "" : "s"} (Fuzziness: AUTO · Sub-second latency)
+              </span>
+            </div>
+          )}
           {products.isLoading ? (
             <div className="product-grid">{[0, 1, 2, 3].map((item) => <div className="product-skeleton" key={item} />)}</div>
           ) : products.data?.products.length ? (

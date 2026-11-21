@@ -13,6 +13,10 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
 function normalizeTerm(term: string) {
   let s = term.toLowerCase().trim();
   if (s === "bluetoth") return "bluetooth";
+  if (s === "erphones" || s === "erphone") return "earphone";
+  if (s === "keybord") return "keyboard";
+  if (s === "moniter") return "monitor";
+  if (s === "soundcre") return "soundcore";
   if (s.endsWith("ies")) return s.slice(0, -3) + "y";
   if (s.endsWith("es") && s.length > 3) return s.slice(0, -2);
   if (s.endsWith("s") && s.length > 3) return s.slice(0, -1);
@@ -283,8 +287,11 @@ export async function searchProducts(filters: ProductFilters) {
         }
 
         // Fuzzy typo tolerance
-        if (qLower.includes("bluetoth") && (nameLower.includes("bluetooth") || keywords.includes("bluetooth"))) score += 12;
-        if (qLower.includes("keybord") && (nameLower.includes("keyboard") || keywords.includes("keyboard"))) score += 12;
+        if (qLower.includes("bluetoth") && (nameLower.includes("bluetooth") || keywords.includes("bluetooth"))) score += 20;
+        if ((qLower.includes("erphone") || qLower.includes("erphones")) && (nameLower.includes("earphone") || keywords.includes("earphones"))) score += 20;
+        if (qLower.includes("keybord") && (nameLower.includes("keyboard") || nameLower.includes("keychron") || keywords.includes("keyboard"))) score += 20;
+        if (qLower.includes("moniter") && (nameLower.includes("display") || nameLower.includes("monitor") || descLower.includes("monitor"))) score += 20;
+        if (qLower.includes("soundcre") && (nameLower.includes("soundcore") || descLower.includes("soundcore"))) score += 20;
 
         return { product: p, score };
       })

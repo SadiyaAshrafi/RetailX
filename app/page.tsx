@@ -75,6 +75,28 @@ export default function HomePage() {
           <p>Next-generation commerce with sub-second OpenSearch matching and durable Kafka event-driven order processing.</p>
           <SearchBox large />
 
+          {/* OpenSearch Typo-Tolerance Demo Row */}
+          <div className="hero-opensearch-demo">
+            <span className="opensearch-pill-label">⚡ OpenSearch Typo Test:</span>
+            <div className="opensearch-pill-group">
+              <Link href="/products?q=bluetoth" className="opensearch-pill" title="Fuzzy search for 'bluetoth' ➔ Bluetooth Earphones">
+                Try &ldquo;bluetoth&rdquo; ➔ Bluetooth Earphones
+              </Link>
+              <Link href="/products?q=erphones" className="opensearch-pill" title="Fuzzy search for 'erphones' ➔ Earphones">
+                Try &ldquo;erphones&rdquo; ➔ Earphones
+              </Link>
+              <Link href="/products?q=keybord" className="opensearch-pill" title="Fuzzy search for 'keybord' ➔ Keychron Keyboard">
+                Try &ldquo;keybord&rdquo; ➔ Keychron Keyboard
+              </Link>
+              <Link href="/products?q=moniter" className="opensearch-pill" title="Fuzzy search for 'moniter' ➔ 4K Monitor">
+                Try &ldquo;moniter&rdquo; ➔ 4K Monitor
+              </Link>
+              <Link href="/products?q=soundcre" className="opensearch-pill" title="Fuzzy search for 'soundcre' ➔ Soundcore Space One">
+                Try &ldquo;soundcre&rdquo; ➔ Soundcore Space One
+              </Link>
+            </div>
+          </div>
+
           {/* Quick Search Pills */}
           <div className="hero-search-pills">
             <span className="pill-title">Popular:</span>

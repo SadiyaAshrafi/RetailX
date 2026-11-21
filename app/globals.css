@@ -963,6 +963,72 @@ button { color: inherit; }
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.25);
 }
+
+/* OpenSearch Typo-Tolerance Demo Row */
+.hero-opensearch-demo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 6px;
+  width: 100%;
+}
+
+.opensearch-pill-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #f59e0b;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.opensearch-pill-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.opensearch-pill {
+  font-size: 11px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  color: #fde68a;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+
+.opensearch-pill:hover {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: #f59e0b;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.opensearch-fuzzy-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.09);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.opensearch-fuzzy-banner b {
+  color: #fde68a;
+}
+
 .hero-action-buttons {
   display: flex;
   gap: 12px;
