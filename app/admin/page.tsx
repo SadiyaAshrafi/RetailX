@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Boxes, Cpu, Database, IndianRupee, Layers, PackageCheck, Search, ShoppingCart, TrendingUp, Waves, Zap } from "lucide-react";
 import Link from "next/link";
 import { AdminShell } from "@/components/admin-shell";
+import { ArchitectureFlow } from "@/components/architecture-flow";
 import { api, money, type Product, type SearchResult, type ServiceState } from "@/lib/api";
 
 type Overview = {
@@ -74,38 +75,10 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      {/* System Architecture Diagram Strip */}
-      <div className="admin-architecture-card">
-        <div className="arch-header">
-          <Layers size={16} className="text-amber-500" />
-          <span><b>Platform Architecture:</b> Cloud Distributed Event Pipeline</span>
-        </div>
-        <div className="arch-flow">
-          <div className="arch-node">
-            <Cpu size={15} />
-            <strong>Next.js 15 App</strong>
-            <small>Vercel Edge/Serverless</small>
-          </div>
-          <span className="arch-arrow">➔</span>
-          <div className="arch-node">
-            <Database size={15} />
-            <strong>Aiven PostgreSQL</strong>
-            <small>Prisma + Outbox Pattern</small>
-          </div>
-          <span className="arch-arrow">➔</span>
-          <div className="arch-node">
-            <Waves size={15} />
-            <strong>Apache Kafka</strong>
-            <small>4 Event Topics</small>
-          </div>
-          <span className="arch-arrow">➔</span>
-          <div className="arch-node">
-            <Search size={15} />
-            <strong>Aiven OpenSearch</strong>
-            <small>Real-time Index Sync</small>
-          </div>
-        </div>
-      </div>
+      {/* Interactive System Architecture Diagram & Packet Pulse */}
+      <section className="mb-6">
+        <ArchitectureFlow />
+      </section>
 
       {/* Metric Cards */}
       <div className="metric-grid">

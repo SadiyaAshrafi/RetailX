@@ -102,6 +102,7 @@ export async function searchProducts(filters: ProductFilters) {
       const dbProducts = await prisma.product.findMany({
         where: {
           AND: [
+            { id: { not: { startsWith: "demo-" } } },
             category ? { category: { equals: category, mode: "insensitive" } } : {},
             query
               ? {
@@ -175,7 +176,7 @@ export async function searchProducts(filters: ProductFilters) {
   }
 
   // Memory store fallback with fuzzy score matching
-  let list = [...memoryStore.products];
+  let list = memoryStore.products.filter((p) => !p.id.startsWith("demo-"));
 
   if (category) {
     list = list.filter((p) => p.category.toLowerCase() === category.toLowerCase());
@@ -322,13 +323,14 @@ export async function suggestProducts(query: string) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
-  // Match memory store products
+  // Match memory store products (excluding demo SKUs)
   const matches = memoryStore.products
     .filter(
       (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        (q.includes("bluetoth") && p.name.toLowerCase().includes("bluetooth"))
+        !p.id.startsWith("demo-") &&
+        (p.name.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          (q.includes("bluetoth") && p.name.toLowerCase().includes("bluetooth")))
     )
     .slice(0, 5)
     .map((p) => ({

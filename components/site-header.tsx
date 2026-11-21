@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, CircleUserRound, GitCompare, MapPin, Search, ShoppingBag, Sparkles, Tag, Zap } from "lucide-react";
+import { ArrowUpRight, CircleUserRound, GitCompare, MapPin, Search, ShieldCheck, ShoppingBag, Sparkles, Tag, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, cartId, type ServiceState } from "@/lib/api";
 
@@ -84,6 +84,10 @@ export function SiteHeader() {
           <Link href="/products?sort=popular">Trending</Link>
           <Link href="/compare" className="nav-compare-link">
             <GitCompare size={14} className="inline mr-1" /> Compare
+          </Link>
+          <Link href="/pipeline" className="nav-pipeline-link">
+            <ShieldCheck size={14} className="inline mr-1 text-emerald-400" />
+            Race Proof <span className="nav-new" style={{ backgroundColor: "#059669" }}>ACID</span>
           </Link>
           <Link href="/assistant" className="nav-assistant-highlight">
             <Sparkles size={14} className="inline mr-1 text-amber-500" />

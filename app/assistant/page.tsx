@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
-import { ArrowRight, ArrowUpRight, Check, MapPin, Mic, MicOff, Search, ShoppingBag, Sparkles, User, Zap } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, MapPin, Mic, MicOff, Search, ShoppingBag, Sparkles, User, Volume2, VolumeX, Zap } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { api, cartId, money, notifyCartChanged, type Product, type SearchResult } from "@/lib/api";
 
@@ -41,9 +41,38 @@ export default function AssistantPage() {
     },
   ]);
   const [bundleAdded, setBundleAdded] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(false);
+  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<unknown>(null);
+
+  function speakText(text: string, msgId?: string) {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      if (speakingMsgId === msgId) {
+        setSpeakingMsgId(null);
+        return;
+      }
+    }
+
+    const clean = text
+      .replace(/\*\*(.*?)\*\*/g, "$1")
+      .replace(/[#*_~`]/g, "")
+      .replace(/₹(\d+)/g, "$1 rupees");
+
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.lang = "en-IN";
+    utterance.rate = 1.05;
+
+    if (msgId) setSpeakingMsgId(msgId);
+    utterance.onend = () => setSpeakingMsgId(null);
+    utterance.onerror = () => setSpeakingMsgId(null);
+
+    window.speechSynthesis.speak(utterance);
+  }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -130,6 +159,10 @@ export default function AssistantPage() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      if (autoSpeak) {
+        speakText(res.answer, assistantMessage.id);
+      }
     } catch (e) {
       const errorMessage: Message = {
         id: `ai-err-${Date.now()}`,
@@ -168,14 +201,27 @@ export default function AssistantPage() {
         <p>Ask in natural speech or text. I evaluate inventory, pricing, and specs in real time.</p>
       </div>
 
-      {/* Suggested prompts */}
-      <div className="assistant-prompts">
-        <span>TRY ASKING</span>
-        {SUGGESTED_PROMPTS.map((prompt) => (
-          <button key={prompt} onClick={() => void handleSend(prompt)} disabled={loading}>
-            {prompt}
-          </button>
-        ))}
+      {/* Suggested prompts & Voice output controls */}
+      <div className="assistant-prompts-bar">
+        <div className="assistant-prompts">
+          <span>TRY ASKING</span>
+          {SUGGESTED_PROMPTS.map((prompt) => (
+            <button key={prompt} onClick={() => void handleSend(prompt)} disabled={loading}>
+              {prompt}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => {
+            if (autoSpeak) window.speechSynthesis?.cancel();
+            setAutoSpeak(!autoSpeak);
+          }}
+          className={`auto-speak-toggle ${autoSpeak ? "active" : ""}`}
+          title={autoSpeak ? "Auto-speak replies enabled" : "Enable voice replies"}
+        >
+          {autoSpeak ? <Volume2 size={15} /> : <VolumeX size={15} />}
+          <span>{autoSpeak ? "Voice: ON" : "Voice: OFF"}</span>
+        </button>
       </div>
 
       {/* Conversation Thread */}
@@ -188,7 +234,19 @@ export default function AssistantPage() {
             <div className="message-bubble">
               <div className="message-header">
                 <strong>{msg.sender === "assistant" ? "RetailX AI" : "You"}</strong>
-                <span className="message-time">{msg.timestamp}</span>
+                <div className="message-header-right">
+                  {msg.sender === "assistant" && (
+                    <button
+                      onClick={() => speakText(msg.text, msg.id)}
+                      className={`msg-speak-btn ${speakingMsgId === msg.id ? "speaking" : ""}`}
+                      title={speakingMsgId === msg.id ? "Stop reading" : "Read aloud"}
+                    >
+                      {speakingMsgId === msg.id ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                      <span>{speakingMsgId === msg.id ? "Stop" : "Listen"}</span>
+                    </button>
+                  )}
+                  <span className="message-time">{msg.timestamp}</span>
+                </div>
               </div>
               <div className="message-text">
                 {msg.text.split("\n\n").map((paragraph, i) => (
