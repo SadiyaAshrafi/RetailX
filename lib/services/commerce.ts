@@ -66,6 +66,9 @@ export async function addItemToCart(cartId: string, productId: string, quantity:
       });
       if (!product) throw new Error("Product not found.");
       const stock = product.inventory.reduce((sum, item) => sum + item.stockCount, 0);
+      if (stock <= 0) {
+        throw new Error("This item is out of stock and not available.");
+      }
       const existing = await prisma.cartItem.findUnique({
         where: { cartId_productId: { cartId, productId } },
       });
@@ -80,7 +83,7 @@ export async function addItemToCart(cartId: string, productId: string, quantity:
       });
       return await getCart(cartId);
     } catch (e: unknown) {
-      if (e instanceof Error && e.message.includes("Requested quantity")) {
+      if (e instanceof Error && (e.message.includes("out of stock") || e.message.includes("Requested quantity"))) {
         throw e;
       }
       // Fall through to memory store
@@ -90,6 +93,10 @@ export async function addItemToCart(cartId: string, productId: string, quantity:
   // Memory store fallback
   const product = memoryStore.products.find((p) => p.id === productId);
   if (!product) throw new Error("Product not found.");
+
+  if (product.stock <= 0) {
+    throw new Error("This item is out of stock and not available.");
+  }
 
   let cart = memoryStore.carts.get(cartId);
   if (!cart) {

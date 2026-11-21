@@ -84,8 +84,17 @@ export function ProductListing({ initialQuery, initialCategory }: { initialQuery
     const handleStockChanged = () => {
       void products.refetch();
     };
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "retailx-stock-sync") {
+        void products.refetch();
+      }
+    };
     window.addEventListener("retailx-stock-changed", handleStockChanged);
-    return () => window.removeEventListener("retailx-stock-changed", handleStockChanged);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener("retailx-stock-changed", handleStockChanged);
+      window.removeEventListener("storage", handleStorage);
+    };
   }, [products]);
 
   const activeFilters = Number(Boolean(category)) + Number(Boolean(city)) + Number(available) + Number(Boolean(minPrice || maxPrice));

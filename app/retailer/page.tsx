@@ -154,12 +154,30 @@ export default function RetailerOSPage() {
   const [lastSpokenText, setLastSpokenText] = useState("");
 
   // Store Builder State
-  const [builderType, setBuilderType] = useState<"Grocery" | "Pharmacy" | "Fashion" | "Electronics" | "Restaurant" | "Furniture">("Electronics");
-  const [builderStoreName, setBuilderStoreName] = useState("VoltEdge Modern Tech");
-  const [builderColor, setBuilderColor] = useState("#0f766e");
+  const [builderType, setBuilderType] = useState<"Grocery" | "Pharmacy" | "Fashion" | "Electronics" | "Restaurant" | "Furniture">("Pharmacy");
+  const [builderStoreName, setBuilderStoreName] = useState("ApolloCare Meds & Healthcare");
+  const [builderColor, setBuilderColor] = useState("#0284c7");
   const [generatedStore, setGeneratedStore] = useState<any>(null);
   const [isBuildingStore, setIsBuildingStore] = useState(false);
   const [iframeKey, setIframeKey] = useState(1);
+
+  function handleVerticalChange(val: "Grocery" | "Pharmacy" | "Fashion" | "Electronics" | "Restaurant" | "Furniture") {
+    setBuilderType(val);
+    const defaults: Record<string, { name: string; color: string }> = {
+      Pharmacy: { name: "ApolloCare Meds & Healthcare", color: "#0284c7" },
+      Grocery: { name: "Fresh Harvest Supermart", color: "#15803d" },
+      Fashion: { name: "Aura Minimalist Studio", color: "#7c3aed" },
+      Electronics: { name: "VoltEdge Modern Tech", color: "#0f766e" },
+      Restaurant: { name: "Tandoor & Twig Cloud Kitchen", color: "#ea580c" },
+      Furniture: { name: "Oak & Iron Living Spaces", color: "#b45309" },
+    };
+    if (defaults[val]) {
+      setBuilderStoreName(defaults[val].name);
+      setBuilderColor(defaults[val].color);
+    }
+    setGeneratedStore(null);
+    setIframeKey((k) => k + 1);
+  }
 
   // Merchant Live App State
   const [merchantOrders, setMerchantOrders] = useState([
@@ -913,10 +931,10 @@ export default function RetailerOSPage() {
                 Business Vertical
                 <select
                   value={builderType}
-                  onChange={(e) => setBuilderType(e.target.value as any)}
+                  onChange={(e) => handleVerticalChange(e.target.value as any)}
                 >
-                  <option value="Grocery">🥦 Grocery &amp; Supermart</option>
                   <option value="Pharmacy">💊 Pharmacy &amp; Wellness</option>
+                  <option value="Grocery">🥦 Grocery &amp; Supermart</option>
                   <option value="Fashion">👗 Fashion &amp; Apparel</option>
                   <option value="Electronics">⚡ Electronics &amp; Gadgets</option>
                   <option value="Restaurant">🍕 Restaurant &amp; Cloud Kitchen</option>
@@ -930,7 +948,7 @@ export default function RetailerOSPage() {
                   required
                   value={builderStoreName}
                   onChange={(e) => setBuilderStoreName(e.target.value)}
-                  placeholder="e.g. Indiranagar Organic Hub"
+                  placeholder="e.g. ApolloCare Meds & Healthcare"
                 />
               </label>
 
@@ -966,7 +984,7 @@ export default function RetailerOSPage() {
                 <div className="preview-browser-bar">
                   <Globe size={13} style={{ color: "#94a3b8" }} />
                   <span className="preview-url">
-                    https://{generatedStore ? generatedStore.subdomain : `${builderStoreName.toLowerCase().replace(/[^a-z0-9]/g, "") || "voltedge"}.retailx.ai`}
+                    https://{generatedStore ? generatedStore.subdomain : `${builderStoreName.toLowerCase().replace(/[^a-z0-9]/g, "") || "apollocare"}.retailx.ai`}
                   </span>
                 </div>
 
@@ -983,7 +1001,7 @@ export default function RetailerOSPage() {
                     <RefreshCw size={12} />
                   </button>
                   <a
-                    href={`/store/${generatedStore ? generatedStore.subdomainSlug : (builderStoreName.toLowerCase().replace(/[^a-z0-9]/g, "") || "voltedge")}`}
+                    href={`/store/${generatedStore ? generatedStore.subdomainSlug : (builderStoreName.toLowerCase().replace(/[^a-z0-9]/g, "") || "apollocare")}?vertical=${generatedStore ? generatedStore.businessType : builderType}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="button button-primary button-xs"
@@ -998,7 +1016,7 @@ export default function RetailerOSPage() {
               <div className="preview-iframe-container">
                 <iframe
                   key={iframeKey}
-                  src={`/store/${generatedStore ? generatedStore.subdomainSlug : (builderStoreName.toLowerCase().replace(/[^a-z0-9]/g, "") || "voltedge")}`}
+                  src={`/store/${generatedStore ? generatedStore.subdomainSlug : (builderStoreName.toLowerCase().replace(/[^a-z0-9]/g, "") || "apollocare")}?vertical=${generatedStore ? generatedStore.businessType : builderType}`}
                   title={`${builderStoreName} Live Interactive Storefront`}
                   className="preview-store-iframe"
                 />
@@ -1006,7 +1024,7 @@ export default function RetailerOSPage() {
 
               <div className="preview-meta-footer">
                 <div className="meta-pill">
-                  <span className="live-dot" /> LIVE INTERACTIVE STOREFRONT
+                  <span className="live-dot" /> LIVE {builderType.toUpperCase()} STOREFRONT
                 </div>
                 <div className="meta-pill">🗄 AIVEN POSTGRESQL SYNCED</div>
                 <div className="meta-pill">⚡ KAFKA EVENT STREAM</div>

@@ -48,12 +48,25 @@ export default function ProductDetailPage() {
     const handleStockChanged = () => {
       void product.refetch();
     };
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "retailx-stock-sync") {
+        void product.refetch();
+      }
+    };
     window.addEventListener("retailx-stock-changed", handleStockChanged);
-    return () => window.removeEventListener("retailx-stock-changed", handleStockChanged);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener("retailx-stock-changed", handleStockChanged);
+      window.removeEventListener("storage", handleStorage);
+    };
   }, [product]);
 
   async function addToCart(buyNow = false) {
     if (!product.data) return;
+    if (product.data.stock < 1) {
+      setMessage("⚠️ This item is currently out of stock and unavailable for purchase.");
+      return;
+    }
     setMessage("");
     try {
       await api(`/cart/${cartId()}/items`, {
@@ -136,11 +149,19 @@ export default function ProductDetailPage() {
           <p className="detail-description">{item.description}</p>
           <div className="detail-price">{money(item.price)} <span>Inclusive of all taxes</span></div>
 
-          <div className={`stock-callout${item.stock < 6 ? " stock-low" : ""}`}>
-            <span className="stock-indicator" />
+          <div className={`stock-callout${item.stock < 1 ? " stock-out" : item.stock < 6 ? " stock-low" : ""}`}>
+            <span className={`stock-indicator${item.stock < 1 ? " indicator-out" : ""}`} />
             <div>
-              <strong>{item.stock > 0 ? (item.stock < 6 ? `Only ${item.stock} left in stock` : "In stock and ready to ship") : "Currently unavailable"}</strong>
-              <span>Live inventory synchronized with Aiven PostgreSQL</span>
+              <strong>
+                {item.stock > 0
+                  ? (item.stock < 6 ? `Only ${item.stock} left in stock` : "In stock and ready to ship")
+                  : "Out of Stock — Not Available"}
+              </strong>
+              <span>
+                {item.stock > 0
+                  ? "Live inventory synchronized with Aiven PostgreSQL"
+                  : "0 units remaining across all warehouse hubs"}
+              </span>
             </div>
           </div>
 
@@ -148,8 +169,13 @@ export default function ProductDetailPage() {
             <span className="filter-label">Available in warehouse hubs:</span>
             {item.cities.length ? (
               item.cities.map((location) => (
-                <span className="location-chip" key={location.city}>
-                  <MapPin size={12} /> {location.city} <b>{location.stock} units</b>
+                <span
+                  className={`location-chip${location.stock < 1 ? " location-out" : ""}`}
+                  key={location.city}
+                  style={location.stock < 1 ? { opacity: 0.6, borderColor: "#ef4444", color: "#f87171" } : {}}
+                >
+                  <MapPin size={12} /> {location.city}{" "}
+                  <b>{location.stock < 1 ? "Out of stock (0)" : `${location.stock} units`}</b>
                 </span>
               ))
             ) : (
@@ -171,18 +197,26 @@ export default function ProductDetailPage() {
 
           <div className="detail-buy-row">
             <div className="quantity-stepper">
-              <button onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="Decrease quantity">−</button>
-              <span>{quantity}</span>
-              <button onClick={() => setQuantity(Math.min(Math.max(item.stock, 1), quantity + 1))} aria-label="Increase quantity">+</button>
+              <button disabled={item.stock < 1} onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="Decrease quantity">−</button>
+              <span>{item.stock < 1 ? 0 : quantity}</span>
+              <button disabled={item.stock < 1} onClick={() => setQuantity(Math.min(Math.max(item.stock, 1), quantity + 1))} aria-label="Increase quantity">+</button>
             </div>
-            <button className="button button-primary detail-add" disabled={item.stock < 1} onClick={() => void addToCart()}>
-              <ShoppingBag size={16} /> Add to bag
+            <button
+              className={`button ${item.stock < 1 ? "button-disabled out-of-stock-btn" : "button-primary"} detail-add`}
+              disabled={item.stock < 1}
+              onClick={() => void addToCart()}
+            >
+              <ShoppingBag size={16} /> {item.stock < 1 ? "Out of stock" : "Add to bag"}
             </button>
           </div>
 
           <div className="detail-secondary-actions">
-            <button className="button button-secondary detail-buy" disabled={item.stock < 1} onClick={() => void addToCart(true)}>
-              Buy now <ArrowRight size={15} />
+            <button
+              className={`button ${item.stock < 1 ? "button-disabled" : "button-secondary"} detail-buy`}
+              disabled={item.stock < 1}
+              onClick={() => void addToCart(true)}
+            >
+              {item.stock < 1 ? "Not available" : "Buy now"} <ArrowRight size={15} />
             </button>
             <button className="button button-outline detail-compare-btn" onClick={handleCompare}>
               <GitCompare size={15} /> Compare specs

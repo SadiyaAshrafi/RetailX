@@ -19,14 +19,32 @@ export default function InventoryPage() {
 
   async function save(row: InventoryRow) {
     const stockCount = Number(drafts[row.id]);
-    if (!Number.isInteger(stockCount) || stockCount < 0) return setNotice("Enter a whole number above zero.");
+    if (!Number.isInteger(stockCount) || stockCount < 0) return setNotice("Enter a valid whole number (0 or higher).");
     setSaving(row.id);
     setNotice("");
     try {
       await api(`/admin/inventory/${row.id}`, { method: "PATCH", body: JSON.stringify({ stockCount }) });
       await queryClient.invalidateQueries({ queryKey: ["admin-inventory"] });
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+      await queryClient.invalidateQueries({ queryKey: ["product"] });
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("retailx-stock-changed", {
+          detail: { productId: row.product.id, city: row.city, stock: stockCount }
+        }));
+        localStorage.setItem("retailx-stock-sync", JSON.stringify({
+          productId: row.product.id,
+          city: row.city,
+          stock: stockCount,
+          time: Date.now()
+        }));
+      }
+
       setDrafts((current) => { const next = { ...current }; delete next[row.id]; return next; });
-      setNotice(`Stock updated for ${row.product.name}. Kafka sync is queued.`);
+      setNotice(stockCount === 0
+        ? `⚠️ Stock set to 0 (OUT OF STOCK) for ${row.product.name} in ${row.city}. Synchronized with storefront!`
+        : `Stock updated to ${stockCount} for ${row.product.name} in ${row.city}. Kafka sync queued.`
+      );
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Unable to update inventory.");
     } finally {

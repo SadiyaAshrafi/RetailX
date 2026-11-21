@@ -78,15 +78,18 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         <Link href={`/products/${product.productId}`} className="product-name">{product.name}</Link>
         <div className="product-card-bottom">
           <span className="product-price">{money(product.price)}</span>
-          <button
-            className={`add-button${added ? " added" : ""}`}
-            onClick={addToBag}
-            disabled={product.stock < 1}
-            aria-label={`Add ${product.name} to bag`}
-            title={error || (added ? "Added to bag" : "Add to bag")}
-          >
-            {added ? <Check size={17} /> : <Plus size={17} />}
-          </button>
+          {product.stock < 1 ? (
+            <span className="out-of-stock-tag" title="Out of stock - Not available">Out of stock</span>
+          ) : (
+            <button
+              className={`add-button${added ? " added" : ""}`}
+              onClick={addToBag}
+              aria-label={`Add ${product.name} to bag`}
+              title={error || (added ? "Added to bag" : "Add to bag")}
+            >
+              {added ? <Check size={17} /> : <Plus size={17} />}
+            </button>
+          )}
         </div>
         {error && <span className="inline-error">{error}</span>}
       </div>

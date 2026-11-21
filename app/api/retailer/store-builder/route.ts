@@ -12,77 +12,82 @@ if (!globalForStores.generatedStores) {
 }
 const storeRegistry = globalForStores.generatedStores;
 
-// Pre-populate with default demo store
-if (!storeRegistry.has("demotech") && !storeRegistry.has("mystore")) {
-  const defaultTemplate = STORE_TEMPLATES.Electronics;
-  const initialStore = {
-    id: "store-demotech",
-    businessType: "Electronics",
-    storeName: "VoltEdge Modern Tech",
-    subdomain: "voltedge.retailx.ai",
-    subdomainSlug: "voltedge",
-    previewUrl: "/store/voltedge",
-    customDomain: "voltedge.com",
-    primaryColor: defaultTemplate.primaryColor,
-    accentColor: defaultTemplate.accentColor,
-    bannerImage: defaultTemplate.bannerImage,
-    logoUrl: "",
-    contactPhone: "+91 98765 43210",
-    createdAt: new Date().toISOString(),
-    features: [
-      "✅ Customer Web App (Next.js 15 PWA Ready)",
-      "✅ Instant Admin Panel with Real-Time KPIs",
-      "✅ Auto-Generated Product Catalog & Image AI",
-      "✅ PostgreSQL ACID Order & Billing Database",
-      "✅ OpenSearch Sub-Second Search Engine",
-      "✅ Real-Time Kafka Dispatch Stream",
-      "✅ UPI / QR Code / COD Payment Gateway",
-    ],
-    catalog: defaultTemplate.sampleCatalog.map((item, index) => ({
-      id: `gen-voltedge-${index + 1}`,
-      name: item.name,
-      price: item.price,
-      stock: item.stock,
-      category: item.category,
-    })),
-  };
-  storeRegistry.set("voltedge", initialStore);
-  storeRegistry.set("demotech", initialStore);
+// Pre-populate with templates for direct access
+for (const [key, t] of Object.entries(STORE_TEMPLATES)) {
+  const slug = t.defaultSubdomain.split(".")[0];
+  if (!storeRegistry.has(slug)) {
+    storeRegistry.set(slug, {
+      id: `store-${slug}`,
+      businessType: t.type,
+      storeName: t.title,
+      subdomain: t.defaultSubdomain,
+      subdomainSlug: slug,
+      previewUrl: `/store/${slug}`,
+      customDomain: `${slug}.com`,
+      primaryColor: t.primaryColor,
+      accentColor: t.accentColor,
+      bannerImage: t.bannerImage,
+      tagline: t.tagline,
+      trustBadge: t.trustBadge,
+      logoUrl: "",
+      contactPhone: "+91 98765 43210",
+      createdAt: new Date().toISOString(),
+      features: [
+        "✅ Dedicated Subdomain with SSL Encryption",
+        "✅ PostgreSQL ACID Orders & Inventory Database",
+        "✅ OpenSearch Sub-Second Product Search",
+        "✅ Kafka Real-Time Dispatch Streaming",
+        "✅ UPI / Cards / COD Instant Checkout",
+      ],
+      catalog: t.sampleCatalog.map((item, index) => ({
+        id: `gen-${slug}-${index + 1}`,
+        name: item.name,
+        price: item.price,
+        stock: item.stock,
+        category: item.category,
+        imageUrl: item.imageUrl,
+      })),
+    });
+  }
 }
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const subdomain = searchParams.get("subdomain");
+  const vertical = searchParams.get("vertical");
 
   if (subdomain) {
     const clean = subdomain.toLowerCase().replace(/[^a-z0-9]/g, "");
-    const store = storeRegistry.get(clean);
-    if (store) {
-      return NextResponse.json(store);
+    const existing = storeRegistry.get(clean);
+    if (existing) {
+      return NextResponse.json(existing);
     }
 
-    // Auto-synthesize on-demand if not explicitly created yet
-    // Try to guess template from name or default to Electronics
-    let guessedType: keyof typeof STORE_TEMPLATES = "Electronics";
-    if (clean.includes("fresh") || clean.includes("grocery") || clean.includes("mart") || clean.includes("farm")) {
-      guessedType = "Grocery";
-    } else if (clean.includes("med") || clean.includes("care") || clean.includes("pharmacy")) {
-      guessedType = "Pharmacy";
-    } else if (clean.includes("fashion") || clean.includes("wear") || clean.includes("style")) {
-      guessedType = "Fashion";
-    } else if (clean.includes("food") || clean.includes("kitchen") || clean.includes("cafe")) {
-      guessedType = "Restaurant";
-    } else if (clean.includes("home") || clean.includes("wood") || clean.includes("furn")) {
-      guessedType = "Furniture";
+    // Auto-synthesize on-demand using vertical param or slug keywords
+    let matchedType: keyof typeof STORE_TEMPLATES = "Pharmacy";
+    if (vertical && vertical in STORE_TEMPLATES) {
+      matchedType = vertical as keyof typeof STORE_TEMPLATES;
+    } else if (clean.includes("med") || clean.includes("care") || clean.includes("pharmacy") || clean.includes("health") || clean.includes("pill") || clean.includes("cure")) {
+      matchedType = "Pharmacy";
+    } else if (clean.includes("fresh") || clean.includes("grocery") || clean.includes("mart") || clean.includes("farm") || clean.includes("bazaar")) {
+      matchedType = "Grocery";
+    } else if (clean.includes("fashion") || clean.includes("wear") || clean.includes("style") || clean.includes("cloth") || clean.includes("aura")) {
+      matchedType = "Fashion";
+    } else if (clean.includes("tech") || clean.includes("volt") || clean.includes("gadget") || clean.includes("elect")) {
+      matchedType = "Electronics";
+    } else if (clean.includes("food") || clean.includes("kitchen") || clean.includes("cafe") || clean.includes("dish") || clean.includes("biryani")) {
+      matchedType = "Restaurant";
+    } else if (clean.includes("home") || clean.includes("wood") || clean.includes("furn") || clean.includes("living")) {
+      matchedType = "Furniture";
     }
 
-    const template = STORE_TEMPLATES[guessedType] || STORE_TEMPLATES.Electronics;
+    const template = STORE_TEMPLATES[matchedType];
     const formattedName = clean.charAt(0).toUpperCase() + clean.slice(1);
 
     const synthesizedStore = {
       id: `store-${clean}`,
-      businessType: guessedType,
-      storeName: `${formattedName} Store`,
+      businessType: template.type,
+      storeName: `${formattedName} ${template.type === "Pharmacy" ? "Meds & Healthcare" : template.type}`,
       subdomain: `${clean}.retailx.ai`,
       subdomainSlug: clean,
       previewUrl: `/store/${clean}`,
@@ -90,17 +95,17 @@ export async function GET(request: NextRequest) {
       primaryColor: template.primaryColor,
       accentColor: template.accentColor,
       bannerImage: template.bannerImage,
+      tagline: template.tagline,
+      trustBadge: template.trustBadge,
       logoUrl: "",
       contactPhone: "+91 98765 43210",
       createdAt: new Date().toISOString(),
       features: [
-        "✅ Customer Web App (Next.js 15 PWA Ready)",
-        "✅ Instant Admin Panel with Real-Time KPIs",
-        "✅ Auto-Generated Product Catalog & Image AI",
-        "✅ PostgreSQL ACID Order & Billing Database",
-        "✅ OpenSearch Sub-Second Search Engine",
-        "✅ Real-Time Kafka Dispatch Stream",
-        "✅ UPI / QR Code / COD Payment Gateway",
+        "✅ Dedicated Subdomain with SSL Encryption",
+        "✅ PostgreSQL ACID Orders & Inventory Database",
+        "✅ OpenSearch Sub-Second Product Search",
+        "✅ Kafka Real-Time Dispatch Streaming",
+        "✅ UPI / Cards / COD Instant Checkout",
       ],
       catalog: template.sampleCatalog.map((item, index) => ({
         id: `gen-${clean}-${index + 1}`,
@@ -108,6 +113,7 @@ export async function GET(request: NextRequest) {
         price: item.price,
         stock: item.stock,
         category: item.category,
+        imageUrl: item.imageUrl,
       })),
     };
 
@@ -115,7 +121,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(synthesizedStore);
   }
 
-  // Return all templates
   return NextResponse.json({ templates: STORE_TEMPLATES });
 }
 
@@ -124,7 +129,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const { businessType, storeName, primaryColor, logoUrl, contactPhone } = body;
 
-    const baseTemplate: StoreTemplate = STORE_TEMPLATES[businessType] || STORE_TEMPLATES.Electronics;
+    const baseTemplate: StoreTemplate = STORE_TEMPLATES[businessType] || STORE_TEMPLATES.Pharmacy;
     const cleanSubdomain = (storeName || "mystore")
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "")
@@ -132,26 +137,26 @@ export async function POST(request: NextRequest) {
 
     const generatedStore = {
       id: `store-${Date.now().toString(36)}`,
-      businessType: businessType || baseTemplate.type,
+      businessType: baseTemplate.type,
       storeName: storeName || baseTemplate.title,
       subdomain: `${cleanSubdomain}.retailx.ai`,
       subdomainSlug: cleanSubdomain,
-      previewUrl: `/store/${cleanSubdomain}`,
+      previewUrl: `/store/${cleanSubdomain}?vertical=${baseTemplate.type}`,
       customDomain: `${cleanSubdomain}.com`,
       primaryColor: primaryColor || baseTemplate.primaryColor,
       accentColor: baseTemplate.accentColor,
       bannerImage: baseTemplate.bannerImage,
+      tagline: baseTemplate.tagline,
+      trustBadge: baseTemplate.trustBadge,
       logoUrl: logoUrl || "",
       contactPhone: contactPhone || "+91 98765 43210",
       createdAt: new Date().toISOString(),
       features: [
-        "✅ Customer Web App (Next.js 15 PWA Ready)",
-        "✅ Instant Admin Panel with Real-Time KPIs",
-        "✅ Auto-Generated Product Catalog & Image AI",
-        "✅ PostgreSQL ACID Order & Billing Database",
-        "✅ OpenSearch Sub-Second Search Engine",
-        "✅ Real-Time Kafka Dispatch Stream",
-        "✅ UPI / QR Code / COD Payment Gateway",
+        "✅ Dedicated Subdomain with SSL Encryption",
+        "✅ PostgreSQL ACID Orders & Inventory Database",
+        "✅ OpenSearch Sub-Second Product Search",
+        "✅ Kafka Real-Time Dispatch Streaming",
+        "✅ UPI / Cards / COD Instant Checkout",
       ],
       catalog: baseTemplate.sampleCatalog.map((item, index) => ({
         id: `gen-${cleanSubdomain}-${index + 1}`,
@@ -159,6 +164,7 @@ export async function POST(request: NextRequest) {
         price: item.price,
         stock: item.stock,
         category: item.category,
+        imageUrl: item.imageUrl,
       })),
     };
 

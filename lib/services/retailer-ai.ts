@@ -49,10 +49,32 @@ export type StoreTemplate = {
   primaryColor: string;
   accentColor: string;
   bannerImage: string;
-  sampleCatalog: Array<{ name: string; price: number; stock: number; category: string }>;
+  tagline: string;
+  trustBadge: string;
+  sampleCatalog: Array<{ name: string; price: number; stock: number; category: string; imageUrl: string }>;
 };
 
 export const STORE_TEMPLATES: Record<string, StoreTemplate> = {
+  Pharmacy: {
+    type: "Pharmacy",
+    title: "ApolloCare Meds & Healthcare",
+    defaultSubdomain: "apollocare.retailx.ai",
+    primaryColor: "#0284c7",
+    accentColor: "#38bdf8",
+    bannerImage: "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?auto=format&fit=crop&w=1200&q=80",
+    tagline: "Licensed Pharmacy · 100% Genuine Medicines · 30-Min Fast Delivery",
+    trustBadge: "CDSCO & FDA Licensed · Pharmacist Verified",
+    sampleCatalog: [
+      { name: "Paracetamol 650mg Fast-Action Tablets (Strip of 15)", price: 38, stock: 150, category: "Pain & Fever", imageUrl: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&q=80" },
+      { name: "Vitamin C 500mg + Zinc Chewables (60 Tablets)", price: 299, stock: 85, category: "Immunity", imageUrl: "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=500&q=80" },
+      { name: "Automatic Digital Blood Pressure Monitor with Memory", price: 1599, stock: 24, category: "Medical Devices", imageUrl: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=500&q=80" },
+      { name: "Non-Contact Infrared Forehead Thermometer", price: 899, stock: 32, category: "Medical Devices", imageUrl: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?w=500&q=80" },
+      { name: "Pain Relief Diclofenac Herbal Gel (50g)", price: 145, stock: 90, category: "Ointments", imageUrl: "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=500&q=80" },
+      { name: "Ayurvedic Herbal Tulsi & Ginger Cough Syrup (100ml)", price: 110, stock: 65, category: "Ayurveda", imageUrl: "https://images.unsplash.com/photo-1550572017-ed2364c6762c?w=500&q=80" },
+      { name: "Emergency Trauma & First Aid Kit (36 Essentials)", price: 649, stock: 40, category: "First Aid", imageUrl: "https://images.unsplash.com/photo-1603398938378-e54eab446dde?w=500&q=80" },
+      { name: "Multivitamin Daily Vitality Softgels (Pack of 60)", price: 449, stock: 75, category: "Supplements", imageUrl: "https://images.unsplash.com/photo-1550572017-4fcdbb59cc32?w=500&q=80" },
+    ],
+  },
   Grocery: {
     type: "Grocery",
     title: "Fresh Harvest Supermart",
@@ -60,39 +82,15 @@ export const STORE_TEMPLATES: Record<string, StoreTemplate> = {
     primaryColor: "#15803d",
     accentColor: "#86efac",
     bannerImage: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80",
+    tagline: "Farm Fresh Daily · Direct from Local Farms · Zero Middlemen",
+    trustBadge: "100% Organic & FSSAI Certified",
     sampleCatalog: [
-      { name: "Farm Fresh Whole Milk (1L)", price: 68, stock: 45, category: "Dairy" },
-      { name: "Artisanal Multigrain Bread (400g)", price: 55, stock: 24, category: "Bakery" },
-      { name: "Organic Farm Eggs (Pack of 12)", price: 120, stock: 60, category: "Dairy" },
-      { name: "Alphonso Mango Pulp (850g)", price: 249, stock: 18, category: "Gourmet" },
-      { name: "Cold-Pressed Mustard Oil (1L)", price: 195, stock: 32, category: "Staples" },
-    ],
-  },
-  Pharmacy: {
-    type: "Pharmacy",
-    title: "CarePlus Meds & Wellness",
-    defaultSubdomain: "careplus.retailx.ai",
-    primaryColor: "#0284c7",
-    accentColor: "#38bdf8",
-    bannerImage: "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?auto=format&fit=crop&w=1200&q=80",
-    sampleCatalog: [
-      { name: "Vitamin C + Zinc Chewables (60 Tabs)", price: 349, stock: 80, category: "Supplements" },
-      { name: "Digital Infrared Thermometer", price: 1299, stock: 15, category: "Devices" },
-      { name: "Pain Relief Herbal Gel (50g)", price: 145, stock: 50, category: "Ointments" },
-      { name: "Ayurvedic Immunity Booster Kadha (250g)", price: 299, stock: 35, category: "Wellness" },
-    ],
-  },
-  Fashion: {
-    type: "Fashion",
-    title: "Aura Minimalist Studio",
-    defaultSubdomain: "aurastudio.retailx.ai",
-    primaryColor: "#7c3aed",
-    accentColor: "#c084fc",
-    bannerImage: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80",
-    sampleCatalog: [
-      { name: "Organic Heavyweight Cotton Oversized Tee", price: 1499, stock: 28, category: "Apparel" },
-      { name: "Japanese Selvedge Raw Denim", price: 4299, stock: 14, category: "Denim" },
-      { name: "Merino Wool Knit Beanie", price: 899, stock: 40, category: "Accessories" },
+      { name: "Farm Fresh Pasteurized Whole Milk (1L)", price: 68, stock: 95, category: "Dairy", imageUrl: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=500&q=80" },
+      { name: "Artisanal Multigrain Bread (400g)", price: 55, stock: 48, category: "Bakery", imageUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&q=80" },
+      { name: "Organic Farm Eggs (Pack of 12)", price: 120, stock: 80, category: "Dairy", imageUrl: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&q=80" },
+      { name: "Fresh Royal Gala Apples (1kg)", price: 180, stock: 60, category: "Fruits", imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500&q=80" },
+      { name: "Cold-Pressed Virgin Mustard Oil (1L)", price: 195, stock: 45, category: "Staples", imageUrl: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=500&q=80" },
+      { name: "Basmati Premium Aged Rice (5kg)", price: 499, stock: 50, category: "Staples", imageUrl: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&q=80" },
     ],
   },
   Electronics: {
@@ -102,10 +100,29 @@ export const STORE_TEMPLATES: Record<string, StoreTemplate> = {
     primaryColor: "#0f766e",
     accentColor: "#2dd4bf",
     bannerImage: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=1200&q=80",
+    tagline: "Next-Gen Consumer Tech · Manufacturer Warranty · Express Dispatch",
+    trustBadge: "100% Genuine · 1-Year Brand Warranty",
     sampleCatalog: [
-      { name: "GaN 65W Fast Charger (Triple Port)", price: 2499, stock: 52, category: "Power" },
-      { name: "Ergonomic Aluminium Laptop Riser", price: 3199, stock: 22, category: "Desk Setup" },
-      { name: "Low-Profile Mechanical Numpad", price: 2899, stock: 18, category: "Keyboards" },
+      { name: "GaN 65W Fast Charger (Triple Port)", price: 2499, stock: 52, category: "Power", imageUrl: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=500&q=80" },
+      { name: "Ergonomic Aluminium Laptop Riser", price: 3199, stock: 22, category: "Desk Setup", imageUrl: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&q=80" },
+      { name: "Low-Profile Wireless Mechanical Keyboard", price: 4899, stock: 18, category: "Keyboards", imageUrl: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500&q=80" },
+      { name: "Precision 2.4GHz Wireless Mouse", price: 1899, stock: 35, category: "Accessories", imageUrl: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=500&q=80" },
+    ],
+  },
+  Fashion: {
+    type: "Fashion",
+    title: "Aura Minimalist Studio",
+    defaultSubdomain: "aurastudio.retailx.ai",
+    primaryColor: "#7c3aed",
+    accentColor: "#c084fc",
+    bannerImage: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80",
+    tagline: "Conscious Apparel · Premium Organic Cotton · Designed in India",
+    trustBadge: "Sustainable Fabrics · Easy 7-Day Exchange",
+    sampleCatalog: [
+      { name: "Organic Heavyweight Cotton Oversized Tee", price: 1499, stock: 45, category: "Apparel", imageUrl: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&q=80" },
+      { name: "Japanese Selvedge Raw Denim Jeans", price: 4299, stock: 20, category: "Denim", imageUrl: "https://images.unsplash.com/photo-1542272604-780c96856592?w=500&q=80" },
+      { name: "Merino Wool Knit Beanie", price: 899, stock: 60, category: "Accessories", imageUrl: "https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?w=500&q=80" },
+      { name: "Everyday Canvas Tote Bag (16L)", price: 799, stock: 50, category: "Bags", imageUrl: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=500&q=80" },
     ],
   },
   Restaurant: {
@@ -115,10 +132,13 @@ export const STORE_TEMPLATES: Record<string, StoreTemplate> = {
     primaryColor: "#ea580c",
     accentColor: "#fdba74",
     bannerImage: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80",
+    tagline: "Authentic Charcoal Tandoor · Hot & Fresh to Your Doorstep in 30 Mins",
+    trustBadge: "FSSAI 5-Star Hygiene Rated Kitchen",
     sampleCatalog: [
-      { name: "Signature Butter Chicken Roll", price: 260, stock: 35, category: "Rolls" },
-      { name: "Paneer Tikka Dum Biryani Bowl", price: 320, stock: 40, category: "Bowls" },
-      { name: "Alphonso Mango Lassi (300ml)", price: 110, stock: 60, category: "Beverages" },
+      { name: "Signature Butter Chicken Roll", price: 260, stock: 45, category: "Rolls", imageUrl: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80" },
+      { name: "Paneer Tikka Dum Biryani Bowl", price: 320, stock: 50, category: "Bowls", imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&q=80" },
+      { name: "Alphonso Mango Lassi (300ml)", price: 110, stock: 70, category: "Beverages", imageUrl: "https://images.unsplash.com/photo-1529042410759-befb1204b468?w=500&q=80" },
+      { name: "Smoked Dal Makhani with Garlic Naan", price: 280, stock: 35, category: "Combos", imageUrl: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500&q=80" },
     ],
   },
   Furniture: {
@@ -128,9 +148,12 @@ export const STORE_TEMPLATES: Record<string, StoreTemplate> = {
     primaryColor: "#b45309",
     accentColor: "#fcd34d",
     bannerImage: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=80",
+    tagline: "Solid Teak & Engineered Steel · Handcrafted Designer Furniture",
+    trustBadge: "10-Year Timber Warranty · Free White-Glove Installation",
     sampleCatalog: [
-      { name: "Solid Teakwood Coffee Table", price: 14500, stock: 6, category: "Tables" },
-      { name: "Ergonomic Linen Armchair", price: 18900, stock: 4, category: "Seating" },
+      { name: "Solid Teakwood Coffee Table", price: 14500, stock: 8, category: "Tables", imageUrl: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=500&q=80" },
+      { name: "Ergonomic Linen Accent Armchair", price: 18900, stock: 5, category: "Seating", imageUrl: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&q=80" },
+      { name: "Minimalist Scandinavian Bookshelf", price: 9200, stock: 12, category: "Storage", imageUrl: "https://images.unsplash.com/photo-1594671581654-2785549114c6?w=500&q=80" },
     ],
   },
 };
