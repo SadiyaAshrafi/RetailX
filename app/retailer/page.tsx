@@ -164,11 +164,12 @@ export default function RetailerOSPage() {
   const [lastSpokenText, setLastSpokenText] = useState("");
 
   // Store Builder State
-  const [builderType, setBuilderType] = useState<"Grocery" | "Pharmacy" | "Fashion" | "Electronics" | "Restaurant" | "Furniture">("Grocery");
-  const [builderStoreName, setBuilderStoreName] = useState("Bangalore Fresh Mart");
-  const [builderColor, setBuilderColor] = useState("#15803d");
+  const [builderType, setBuilderType] = useState<"Grocery" | "Pharmacy" | "Fashion" | "Electronics" | "Restaurant" | "Furniture">("Electronics");
+  const [builderStoreName, setBuilderStoreName] = useState("VoltEdge Modern Tech");
+  const [builderColor, setBuilderColor] = useState("#0f766e");
   const [generatedStore, setGeneratedStore] = useState<any>(null);
   const [isBuildingStore, setIsBuildingStore] = useState(false);
+  const [iframeKey, setIframeKey] = useState(1);
 
   // Merchant Live App State
   const [merchantOrders, setMerchantOrders] = useState([
@@ -319,7 +320,8 @@ export default function RetailerOSPage() {
         }),
       });
       setGeneratedStore(res);
-      showToast(`🎉 Branded store created for ${res.storeName}!`);
+      setIframeKey((k) => k + 1);
+      showToast(`🎉 Branded store created for ${res.storeName}! Embedded store loaded below.`);
     } catch {
       showToast("Could not generate store.");
     } finally {
@@ -968,67 +970,60 @@ export default function RetailerOSPage() {
 
             <div className="builder-preview-panel">
               <div className="preview-top-bar">
-                <span className="preview-dot red" />
-                <span className="preview-dot yellow" />
-                <span className="preview-dot green" />
-                <span className="preview-url">
-                  {generatedStore ? `https://${generatedStore.subdomain}` : "https://bangalorefresh.retailx.ai"}
-                </span>
-                <span className="preview-live-badge"><i /> PWA READY</span>
+                <div className="preview-dots-group">
+                  <span className="preview-dot red" />
+                  <span className="preview-dot yellow" />
+                  <span className="preview-dot green" />
+                </div>
+
+                <div className="preview-browser-bar">
+                  <Globe size={13} style={{ color: "#94a3b8" }} />
+                  <span className="preview-url">
+                    https://{generatedStore ? generatedStore.subdomain : `${builderStoreName.toLowerCase().replace(/[^a-z0-9]/g, "") || "voltedge"}.retailx.ai`}
+                  </span>
+                </div>
+
+                <div className="preview-bar-actions">
+                  <button
+                    type="button"
+                    className="preview-reload-btn"
+                    onClick={() => {
+                      setIframeKey((k) => k + 1);
+                      showToast("Refreshing embedded store preview...");
+                    }}
+                    title="Reload Store"
+                  >
+                    <RefreshCw size={12} />
+                  </button>
+                  <a
+                    href={`/store/${generatedStore ? generatedStore.subdomainSlug : (builderStoreName.toLowerCase().replace(/[^a-z0-9]/g, "") || "voltedge")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="button button-primary button-xs"
+                    style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 12px", fontSize: "11px", fontWeight: 700 }}
+                  >
+                    <ExternalLink size={12} /> Open Fullscreen ↗
+                  </a>
+                </div>
               </div>
 
-              <div className="preview-content-box">
-                <div
-                  className="preview-store-hero"
-                  style={{
-                    backgroundColor: builderColor,
-                    borderColor: builderColor,
-                  }}
-                >
-                  <h4>{builderStoreName}</h4>
-                  <p>Direct from local store · Express 30-min delivery · 0% Middleman markup</p>
-                </div>
+              {/* LIVE EMBEDDED STOREFRONT (Website inside Website) */}
+              <div className="preview-iframe-container">
+                <iframe
+                  key={iframeKey}
+                  src={`/store/${generatedStore ? generatedStore.subdomainSlug : (builderStoreName.toLowerCase().replace(/[^a-z0-9]/g, "") || "voltedge")}`}
+                  title={`${builderStoreName} Live Interactive Storefront`}
+                  className="preview-store-iframe"
+                />
+              </div>
 
-                <div className="preview-features-list">
-                  <span>⚡ Instant Features Deployed:</span>
-                  <ul>
-                    <li>✅ Dedicated Subdomain &amp; SSL: <b>{builderStoreName.toLowerCase().replace(/[^a-z0-9]/g, "")}.retailx.ai</b></li>
-                    <li>✅ Integrated PostgreSQL ACID Order Processing</li>
-                    <li>✅ Sub-second Catalog Search via Aiven OpenSearch</li>
-                    <li>✅ Live Delivery Driver Tracking &amp; WhatsApp Notifications</li>
-                    <li>✅ UPI, Card, and Cash On Delivery Billing</li>
-                  </ul>
+              <div className="preview-meta-footer">
+                <div className="meta-pill">
+                  <span className="live-dot" /> LIVE INTERACTIVE STOREFRONT
                 </div>
-
-                <div className="preview-catalog-sample">
-                  <h5>Sample Generated Catalog ({builderType}):</h5>
-                  <div className="sample-items-grid">
-                    <div className="sample-item-card">
-                      <strong>Item 1 ({builderType})</strong>
-                      <span>In Stock · Next-day dispatch</span>
-                    </div>
-                    <div className="sample-item-card">
-                      <strong>Item 2 ({builderType})</strong>
-                      <span>In Stock · Best Seller</span>
-                    </div>
-                  </div>
-                </div>
-
-                {generatedStore && (
-                  <div className="store-ready-callout">
-                    <Check size={18} className="text-emerald-400" />
-                    <div>
-                      <strong>Storefront is Live and Accepting Orders!</strong>
-                      <p>Share URL with customers or connect a custom .com domain.</p>
-                    </div>
-                    <button
-                      className="button button-light button-sm"
-                      onClick={() => showToast(`Copied https://${generatedStore.subdomain} to clipboard!`)}
-                    >
-                      <Share2 size={13} /> Copy Link
-                    </button>
-                  </div>
-                )}
+                <div className="meta-pill">🗄 AIVEN POSTGRESQL SYNCED</div>
+                <div className="meta-pill">⚡ KAFKA EVENT STREAM</div>
+                <div className="meta-pill">🔍 OPENSEARCH FAST SEARCH</div>
               </div>
             </div>
           </div>
@@ -1089,15 +1084,15 @@ export default function RetailerOSPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* MODULE 11: SUSTAINABILITY TRACKER */}
+      {/* MODULE 11: GREEN TECH TRACKER */}
       {/* ========================================================================= */}
       {activeTab === "sustainability" && (
         <section className="retailer-module-section">
           <div className="section-header">
             <div>
               <span className="filter-label">MODULE 11 · ENVIRONMENTAL IMPACT</span>
-              <h2>Sustainability &amp; Food Waste Tracker</h2>
-              <p>Quantify the environmental and economic impact of AI-driven markdown liquidation and inventory optimization.</p>
+              <h2>Green Tech &amp; E-Waste Tracker</h2>
+              <p>Track how RetailX AI reduces dead stock, diverts e-waste, and promotes sustainable retail — quantified in real rupees and kg CO₂ saved.</p>
             </div>
             <span className="eco-badge"><Leaf size={14} className="text-emerald-400" /> Green Retail Standard</span>
           </div>
@@ -1105,28 +1100,80 @@ export default function RetailerOSPage() {
           <div className="sustainability-hero-box">
             <div className="sustainability-percent-badge">
               <strong>{data?.sustainability.wastePreventedPercent ?? 22.4}%</strong>
-              <span>Waste Prevented This Month</span>
+              <span>Dead Stock Prevented This Month</span>
             </div>
             <p className="sustainability-note">
-              &ldquo;By activating dynamic pricing and smart restock alerts, RetailX prevented <strong>{data?.sustainability.unitsSavedFromLandfill ?? 142} inventory units</strong> from becoming dead stock — saving ₹{data?.sustainability.salvagedRevenue ?? 18450} in working capital.&rdquo;
+              &ldquo;RetailX AI activated dynamic pricing on <strong>{data?.sustainability.unitsSavedFromLandfill ?? 142} slow-moving electronics units</strong> — preventing dead stock write-offs and saving ₹{(data?.sustainability.salvagedRevenue ?? 18450).toLocaleString("en-IN")} in working capital recovery.&rdquo;
             </p>
           </div>
 
           <div className="sustainability-metrics-grid">
             <div className="eco-stat-card">
-              <span className="eco-label">FOOD &amp; GOODS SALVAGED</span>
+              <span className="eco-label">E-WASTE DIVERTED</span>
               <strong>{data?.sustainability.totalKgWasteDiverted ?? 86.5} kg</strong>
-              <span>Direct landfill diversion</span>
+              <span>Electronics units saved from landfill</span>
             </div>
             <div className="eco-stat-card">
               <span className="eco-label">RECOVERED REVENUE</span>
               <strong className="text-emerald-400">{money(data?.sustainability.salvagedRevenue ?? 18450)}</strong>
-              <span>Revenue unlocked from dynamic pricing</span>
+              <span>Revenue unlocked from dead-stock liquidation</span>
             </div>
             <div className="eco-stat-card">
               <span className="eco-label">CARBON OFFSET EQUIVALENT</span>
               <strong>{data?.sustainability.co2SavedKg ?? 218.4} kg CO₂e</strong>
-              <span>Avoided greenhouse gas emissions</span>
+              <span>Avoided emissions from returned & wasted units</span>
+            </div>
+          </div>
+
+          {/* Green Actions */}
+          <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
+            {[
+              { icon: "♻️", title: "Refurbished Units Promoted", value: "38 units", desc: "AI pushed refurbished SKUs to price-sensitive segments, extending product life cycle.", action: "View Refurb Catalog" },
+              { icon: "📦", title: "Packaging Waste Reduced", value: "142 boxes", desc: "Smart bundling reduced individual shipments, cutting cardboard & bubble-wrap waste by 34%.", action: "Bundle Analytics" },
+              { icon: "⚡", title: "Energy Star Products", value: "61% of catalog", desc: "AI flags and promotes BEE 5-star rated energy-efficient products in search rankings.", action: "See Eco Products" },
+              { icon: "🔄", title: "Return Rate Reduction", value: "−18%", desc: "Better product descriptions and AI recommendations reduced wrong-fit purchases and returns.", action: "View Return Stats" },
+            ].map((item) => (
+              <div key={item.title} style={{ background: "#f0fdf4", border: "1.5px solid #bbf7d0", borderRadius: 16, padding: 20 }}>
+                <div style={{ fontSize: 28, marginBottom: 10 }}>{item.icon}</div>
+                <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#0f172a", marginBottom: 4 }}>{item.title}</div>
+                <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#16a34a", marginBottom: 6 }}>{item.value}</div>
+                <div style={{ fontSize: "0.8rem", color: "#166534", lineHeight: 1.5, marginBottom: 12 }}>{item.desc}</div>
+                <button
+                  className="button button-sm"
+                  style={{ background: "#16a34a", color: "#fff", border: "none" }}
+                  onClick={() => showToast(`${item.action} — Generating report...`)}
+                >
+                  {item.action}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* AI Green Score */}
+          <div style={{ marginTop: 24, background: "linear-gradient(135deg, #064e3b 0%, #0f172a 100%)", borderRadius: 20, padding: 28, color: "#fff" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+              <div>
+                <div style={{ fontSize: "0.75rem", letterSpacing: "1px", color: "#6ee7b7", fontWeight: 700, marginBottom: 8 }}>AI GREEN INTELLIGENCE SCORE</div>
+                <div style={{ fontSize: "3rem", fontWeight: 900, letterSpacing: "-2px" }}>94<span style={{ fontSize: "1.5rem", color: "#6ee7b7" }}>/100</span></div>
+                <div style={{ color: "#a7f3d0", marginTop: 4, fontSize: "0.9rem" }}>RetailX Green Elite Status 🌿</div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, maxWidth: 400 }}>
+                {[
+                  { label: "Dead Stock Prevention", pct: 92 },
+                  { label: "E-Waste Diversion Rate", pct: 88 },
+                  { label: "Energy-Efficient Product Mix", pct: 94 },
+                  { label: "Return Rate Optimization", pct: 96 },
+                ].map((bar) => (
+                  <div key={bar.label}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#a7f3d0", marginBottom: 4 }}>
+                      <span>{bar.label}</span><span>{bar.pct}%</span>
+                    </div>
+                    <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 99, height: 6, overflow: "hidden" }}>
+                      <div style={{ background: "#34d399", height: "100%", width: `${bar.pct}%`, borderRadius: 99 }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
