@@ -21,7 +21,6 @@ import {
   Globe,
   IndianRupee,
   Layers,
-  Leaf,
   Mic,
   MicOff,
   PackageCheck,
@@ -96,14 +95,6 @@ type IntelligenceData = {
       expectedLift: string;
     };
   }>;
-  sustainability: {
-    wastePreventedPercent: number;
-    unitsSavedFromLandfill: number;
-    totalKgWasteDiverted: number;
-    salvagedRevenue: number;
-    co2SavedKg: number;
-    badgeText: string;
-  };
 };
 
 type CopilotMessage = {
@@ -135,7 +126,6 @@ export default function RetailerOSPage() {
     | "voice"
     | "store-builder"
     | "merchant-app"
-    | "sustainability"
   >("executive");
 
   // Copilot Chat State
@@ -396,9 +386,6 @@ export default function RetailerOSPage() {
         </button>
         <button className={activeTab === "merchant-app" ? "active" : ""} onClick={() => setActiveTab("merchant-app")}>
           <ShoppingBag size={15} /> Merchant App
-        </button>
-        <button className={activeTab === "sustainability" ? "active" : ""} onClick={() => setActiveTab("sustainability")}>
-          <Leaf size={15} /> Sustainability
         </button>
       </nav>
 
@@ -1079,102 +1066,6 @@ export default function RetailerOSPage() {
                 </div>
               </div>
             ))}
-          </div>
-        </section>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODULE 11: GREEN TECH TRACKER */}
-      {/* ========================================================================= */}
-      {activeTab === "sustainability" && (
-        <section className="retailer-module-section">
-          <div className="section-header">
-            <div>
-              <span className="filter-label">MODULE 11 · ENVIRONMENTAL IMPACT</span>
-              <h2>Green Tech &amp; E-Waste Tracker</h2>
-              <p>Track how RetailX AI reduces dead stock, diverts e-waste, and promotes sustainable retail — quantified in real rupees and kg CO₂ saved.</p>
-            </div>
-            <span className="eco-badge"><Leaf size={14} className="text-emerald-400" /> Green Retail Standard</span>
-          </div>
-
-          <div className="sustainability-hero-box">
-            <div className="sustainability-percent-badge">
-              <strong>{data?.sustainability.wastePreventedPercent ?? 22.4}%</strong>
-              <span>Dead Stock Prevented This Month</span>
-            </div>
-            <p className="sustainability-note">
-              &ldquo;RetailX AI activated dynamic pricing on <strong>{data?.sustainability.unitsSavedFromLandfill ?? 142} slow-moving electronics units</strong> — preventing dead stock write-offs and saving ₹{(data?.sustainability.salvagedRevenue ?? 18450).toLocaleString("en-IN")} in working capital recovery.&rdquo;
-            </p>
-          </div>
-
-          <div className="sustainability-metrics-grid">
-            <div className="eco-stat-card">
-              <span className="eco-label">E-WASTE DIVERTED</span>
-              <strong>{data?.sustainability.totalKgWasteDiverted ?? 86.5} kg</strong>
-              <span>Electronics units saved from landfill</span>
-            </div>
-            <div className="eco-stat-card">
-              <span className="eco-label">RECOVERED REVENUE</span>
-              <strong className="text-emerald-400">{money(data?.sustainability.salvagedRevenue ?? 18450)}</strong>
-              <span>Revenue unlocked from dead-stock liquidation</span>
-            </div>
-            <div className="eco-stat-card">
-              <span className="eco-label">CARBON OFFSET EQUIVALENT</span>
-              <strong>{data?.sustainability.co2SavedKg ?? 218.4} kg CO₂e</strong>
-              <span>Avoided emissions from returned & wasted units</span>
-            </div>
-          </div>
-
-          {/* Green Actions */}
-          <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
-            {[
-              { icon: "♻️", title: "Refurbished Units Promoted", value: "38 units", desc: "AI pushed refurbished SKUs to price-sensitive segments, extending product life cycle.", action: "View Refurb Catalog" },
-              { icon: "📦", title: "Packaging Waste Reduced", value: "142 boxes", desc: "Smart bundling reduced individual shipments, cutting cardboard & bubble-wrap waste by 34%.", action: "Bundle Analytics" },
-              { icon: "⚡", title: "Energy Star Products", value: "61% of catalog", desc: "AI flags and promotes BEE 5-star rated energy-efficient products in search rankings.", action: "See Eco Products" },
-              { icon: "🔄", title: "Return Rate Reduction", value: "−18%", desc: "Better product descriptions and AI recommendations reduced wrong-fit purchases and returns.", action: "View Return Stats" },
-            ].map((item) => (
-              <div key={item.title} style={{ background: "#f0fdf4", border: "1.5px solid #bbf7d0", borderRadius: 16, padding: 20 }}>
-                <div style={{ fontSize: 28, marginBottom: 10 }}>{item.icon}</div>
-                <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#0f172a", marginBottom: 4 }}>{item.title}</div>
-                <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#16a34a", marginBottom: 6 }}>{item.value}</div>
-                <div style={{ fontSize: "0.8rem", color: "#166534", lineHeight: 1.5, marginBottom: 12 }}>{item.desc}</div>
-                <button
-                  className="button button-sm"
-                  style={{ background: "#16a34a", color: "#fff", border: "none" }}
-                  onClick={() => showToast(`${item.action} — Generating report...`)}
-                >
-                  {item.action}
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* AI Green Score */}
-          <div style={{ marginTop: 24, background: "linear-gradient(135deg, #064e3b 0%, #0f172a 100%)", borderRadius: 20, padding: 28, color: "#fff" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-              <div>
-                <div style={{ fontSize: "0.75rem", letterSpacing: "1px", color: "#6ee7b7", fontWeight: 700, marginBottom: 8 }}>AI GREEN INTELLIGENCE SCORE</div>
-                <div style={{ fontSize: "3rem", fontWeight: 900, letterSpacing: "-2px" }}>94<span style={{ fontSize: "1.5rem", color: "#6ee7b7" }}>/100</span></div>
-                <div style={{ color: "#a7f3d0", marginTop: 4, fontSize: "0.9rem" }}>RetailX Green Elite Status 🌿</div>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, maxWidth: 400 }}>
-                {[
-                  { label: "Dead Stock Prevention", pct: 92 },
-                  { label: "E-Waste Diversion Rate", pct: 88 },
-                  { label: "Energy-Efficient Product Mix", pct: 94 },
-                  { label: "Return Rate Optimization", pct: 96 },
-                ].map((bar) => (
-                  <div key={bar.label}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#a7f3d0", marginBottom: 4 }}>
-                      <span>{bar.label}</span><span>{bar.pct}%</span>
-                    </div>
-                    <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 99, height: 6, overflow: "hidden" }}>
-                      <div style={{ background: "#34d399", height: "100%", width: `${bar.pct}%`, borderRadius: 99 }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </section>
       )}

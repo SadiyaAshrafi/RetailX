@@ -290,16 +290,6 @@ export function getRetailerIntelligence() {
     },
   ];
 
-  // 6. Sustainability Tracker (Module 11)
-  const sustainability = {
-    wastePreventedPercent: 22.4,
-    unitsSavedFromLandfill: 142,
-    totalKgWasteDiverted: 86.5,
-    salvagedRevenue: 18450,
-    co2SavedKg: 218.4,
-    badgeText: "You reduced retail wastage by 22.4% this month!",
-  };
-
   return {
     todayRevenue,
     weeklyRevenue,
@@ -312,7 +302,6 @@ export function getRetailerIntelligence() {
     dynamicPricing,
     inventoryHealth,
     customerSegments,
-    sustainability,
   };
 }
 

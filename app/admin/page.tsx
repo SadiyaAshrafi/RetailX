@@ -80,7 +80,7 @@ export default function AdminDashboard() {
         <div className="banner-badge"><Sparkles size={13} className="text-amber-400" /> NEW ENTERPRISE SUITE</div>
         <div className="banner-main-row">
           <div>
-            <h3>Retailer Intelligence OS (12 Autonomous Modules)</h3>
+            <h3>Retailer Intelligence OS</h3>
             <p>&ldquo;Other platforms tell retailers what happened. <strong>RetailX tells retailers what will happen and what they should do next.</strong>&rdquo;</p>
           </div>
           <Link href="/retailer" className="button button-primary">

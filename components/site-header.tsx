@@ -95,7 +95,7 @@ export function SiteHeader() {
           </Link>
           <Link href="/retailer" className="nav-retailer-highlight">
             <Store size={14} className="inline mr-1 text-emerald-400" />
-            Retailer OS <span className="nav-new" style={{ backgroundColor: "#2563eb" }}>12 MODS</span>
+            Retailer OS <span className="nav-new" style={{ backgroundColor: "#2563eb" }}>AI OS</span>
           </Link>
         </nav>
         <div className="header-actions">

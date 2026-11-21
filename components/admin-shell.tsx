@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 
 const navigation = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
-  { href: "/retailer", label: "Retailer OS (12 Mods)", icon: Sparkles },
+  { href: "/retailer", label: "Retailer OS (AI Suite)", icon: Sparkles },
   { href: "/admin/events", label: "Event stream", icon: Radio },
   { href: "/admin/inventory", label: "Inventory", icon: Boxes },
   { href: "/admin/catalog", label: "Catalog", icon: Tags },
